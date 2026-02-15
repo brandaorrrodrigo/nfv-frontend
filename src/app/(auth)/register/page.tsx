@@ -75,7 +75,7 @@ export default function RegisterPage() {
     }
   };
 
-  const inputClass = "w-full px-4 py-3 rounded-xl bg-white border border-[#d0dbe6] text-nfv-ice placeholder:text-nfv-ice-muted focus:outline-none focus:border-nfv-cyan/40 focus:shadow-nfv transition-all text-sm";
+  const inputClass = "w-full px-4 py-3 rounded-xl bg-white border border-[#d0dbe6] text-text-primary placeholder:text-text-muted focus:outline-none focus:border-nfv-cyan/40 focus:shadow-nfv transition-all text-sm";
 
   return (
     <div className="relative min-h-screen flex items-center justify-center p-4">
@@ -89,7 +89,7 @@ export default function RegisterPage() {
               <Eye className="w-7 h-7 text-white" />
             </div>
             <h1 className="font-heading font-bold text-xl nfv-text-aurora">{tAuth('registerTitle')}</h1>
-            <p className="text-nfv-ice-medium text-sm mt-1">{tAuth('registerSubtitle')}</p>
+            <p className="text-text-primary text-sm mt-1">{tAuth('registerSubtitle')}</p>
           </div>
 
           {error && (
@@ -100,17 +100,17 @@ export default function RegisterPage() {
 
           <form onSubmit={handleSubmit} className="space-y-3">
             <div>
-              <label className="block text-xs font-medium text-nfv-ice-medium mb-1.5">{tAuth('name')}</label>
+              <label className="block text-xs font-medium text-text-primary mb-1.5">{tAuth('name')}</label>
               <input type="text" value={form.name} onChange={(e) => update('name', e.target.value)} placeholder={tAuth('namePlaceholder')} required className={inputClass} />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-nfv-ice-medium mb-1.5">{tAuth('email')}</label>
+              <label className="block text-xs font-medium text-text-primary mb-1.5">{tAuth('email')}</label>
               <input type="email" value={form.email} onChange={(e) => update('email', e.target.value)} placeholder={tAuth('emailPlaceholder')} required className={inputClass} />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-nfv-ice-medium mb-1.5">{tAuth('profession')}</label>
+              <label className="block text-xs font-medium text-text-primary mb-1.5">{tAuth('profession')}</label>
               <select
                 value={form.profession}
                 onChange={(e) => update('profession', e.target.value)}
@@ -126,7 +126,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-nfv-ice-medium mb-1.5">
+              <label className="block text-xs font-medium text-text-primary mb-1.5">
                 {tAuth('registerNumber')}
               </label>
               <input type="text" value={form.registerNumber} onChange={(e) => update('registerNumber', e.target.value)} placeholder={tAuth('registerNumberPlaceholder')} className={inputClass} />
@@ -134,7 +134,7 @@ export default function RegisterPage() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-nfv-ice-medium mb-1.5">{tAuth('password')}</label>
+                <label className="block text-xs font-medium text-text-primary mb-1.5">{tAuth('password')}</label>
                 <div className="relative">
                   <input
                     type={showPassword ? 'text' : 'password'}
@@ -144,20 +144,20 @@ export default function RegisterPage() {
                     required
                     className={`${inputClass} pr-10`}
                   />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-nfv-ice-muted">
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary transition-colors">
                     {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                   </button>
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-nfv-ice-medium mb-1.5">{tAuth('confirmPassword')}</label>
+                <label className="block text-xs font-medium text-text-primary mb-1.5">{tAuth('confirmPassword')}</label>
                 <input type="password" value={form.confirmPassword} onChange={(e) => update('confirmPassword', e.target.value)} placeholder="••••••" required className={inputClass} />
               </div>
             </div>
 
             <label className="flex items-start gap-2 pt-1 cursor-pointer">
               <input type="checkbox" checked={acceptTerms} onChange={(e) => setAcceptTerms(e.target.checked)} className="mt-0.5 rounded border-[#d0dbe6] bg-white text-nfv-cyan focus:ring-nfv-cyan/30" />
-              <span className="text-xs text-nfv-ice-medium">
+              <span className="text-xs text-text-primary">
                 Li e aceito os <a href="#" className="text-nfv-cyan hover:underline">Termos de Uso</a> e <a href="#" className="text-nfv-cyan hover:underline">Política de Privacidade</a>
               </span>
             </label>
@@ -178,7 +178,7 @@ export default function RegisterPage() {
             </button>
           </form>
 
-          <p className="text-center text-sm text-nfv-ice-medium mt-5">
+          <p className="text-center text-sm text-text-secondary mt-5">
             {tAuth('hasAccount')}{' '}
             <Link href="/login" className="text-nfv-cyan hover:underline font-medium">
               {tAuth('login')}

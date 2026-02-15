@@ -45,7 +45,7 @@ export default function LoginPage() {
               <Eye className="w-8 h-8 text-white" />
             </div>
             <h1 className="font-heading font-bold text-2xl nfv-text-aurora">NutriFitVision</h1>
-            <p className="text-nfv-ice-medium text-sm mt-1">{t('loginSubtitle')}</p>
+            <p className="text-text-secondary text-sm mt-1">{t('loginSubtitle')}</p>
           </div>
 
           {/* Error */}
@@ -58,19 +58,19 @@ export default function LoginPage() {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-nfv-ice-medium mb-1.5">{t('email')}</label>
+              <label className="block text-xs font-medium text-text-primary mb-1.5">{t('email')}</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={t('emailPlaceholder')}
                 required
-                className="w-full px-4 py-3 rounded-xl bg-white border border-[#d0dbe6] text-nfv-ice placeholder:text-nfv-ice-muted focus:outline-none focus:border-nfv-cyan/40 focus:shadow-nfv transition-all text-sm"
+                className="w-full px-4 py-3 rounded-xl bg-white border border-[#d0dbe6] text-text-primary placeholder:text-text-muted focus:outline-none focus:border-nfv-cyan/40 focus:shadow-nfv transition-all text-sm"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-nfv-ice-medium mb-1.5">{t('password')}</label>
+              <label className="block text-xs font-medium text-text-primary mb-1.5">{t('password')}</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -78,12 +78,12 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder={t('passwordPlaceholder')}
                   required
-                  className="w-full px-4 py-3 rounded-xl bg-white border border-[#d0dbe6] text-nfv-ice placeholder:text-nfv-ice-muted focus:outline-none focus:border-nfv-cyan/40 focus:shadow-nfv transition-all text-sm pr-12"
+                  className="w-full px-4 py-3 rounded-xl bg-white border border-[#d0dbe6] text-text-primary placeholder:text-text-muted focus:outline-none focus:border-nfv-cyan/40 focus:shadow-nfv transition-all text-sm pr-12"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-nfv-ice-muted hover:text-nfv-ice-light transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -107,7 +107,7 @@ export default function LoginPage() {
           </form>
 
           {/* Register Link */}
-          <p className="text-center text-sm text-nfv-ice-medium mt-6">
+          <p className="text-center text-sm text-text-secondary mt-6">
             {t('noAccount')}{' '}
             <Link href="/register" className="text-nfv-cyan hover:underline font-medium">
               {t('register')}
