@@ -1,0 +1,183 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Backgrounds (claros, gelo) */
+    --nfv-bg-deep: #f0f4f8;
+    --nfv-bg-card: #ffffff;
+    --nfv-bg-elevated: #f8fafc;
+    --nfv-bg-hover: #e8f0fe;
+    --nfv-bg-glass: rgba(255, 255, 255, 0.75);
+
+    /* Aurora Accents */
+    --nfv-aurora-cyan: #00bcd4;
+    --nfv-aurora-blue: #2962ff;
+    --nfv-aurora-indigo: #5c6bc0;
+    --nfv-aurora-purple: #7c4dff;
+    --nfv-aurora-teal: #00bfa5;
+
+    /* Textos (escuros sobre fundo claro) */
+    --nfv-text-primary: #1a2332;
+    --nfv-text-secondary: #4a6178;
+    --nfv-text-muted: #8fa3b8;
+    --nfv-text-accent: #00bcd4;
+
+    /* Frost / Gelo */
+    --nfv-frost-border: rgba(0, 188, 212, 0.15);
+    --nfv-frost-shadow: rgba(41, 98, 255, 0.08);
+    --nfv-frost-glow: rgba(0, 188, 212, 0.12);
+
+    /* Gradientes */
+    --nfv-gradient-aurora: linear-gradient(135deg, #00bcd4 0%, #2962ff 40%, #7c4dff 100%);
+    --nfv-gradient-frost: linear-gradient(180deg, rgba(0, 188, 212, 0.08) 0%, transparent 60%);
+    --nfv-gradient-card: linear-gradient(145deg, #ffffff 0%, #f0f4f8 100%);
+    --nfv-gradient-ice: linear-gradient(135deg, #f0f4f8 0%, #e3ecf5 50%, #f0f4f8 100%);
+
+    /* Semânticas */
+    --nfv-success: #00c853;
+    --nfv-warning: #ff9100;
+    --nfv-danger: #ff1744;
+    --nfv-info: #00b0ff;
+  }
+
+  body {
+    @apply bg-bg-deep text-text-primary font-body antialiased;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+}
+
+@layer utilities {
+  /* NFV Glass Morphism */
+  .nfv-glass {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(0, 188, 212, 0.1);
+  }
+
+  .nfv-glass-strong {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(0, 188, 212, 0.12);
+  }
+
+  /* NFV Grid Overlay */
+  .nfv-grid-overlay {
+    background-image:
+      linear-gradient(rgba(0, 188, 212, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 188, 212, 0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  /* NFV Frost Border Gradient */
+  .nfv-border-aurora {
+    border-image: linear-gradient(135deg, #00bcd4, #2962ff, #7c4dff) 1;
+  }
+
+  /* NFV Text Gradient */
+  .nfv-text-aurora {
+    background: linear-gradient(135deg, #00bcd4 0%, #2962ff 40%, #7c4dff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* NFV Score Colors */
+  .nfv-score-excellent { color: #00c853; }
+  .nfv-score-good { color: #00bcd4; }
+  .nfv-score-moderate { color: #ff9100; }
+  .nfv-score-poor { color: #ff1744; }
+
+  /* NFV Aurora Gradient Background */
+  .bg-nfv-aurora {
+    background: var(--nfv-gradient-aurora);
+  }
+
+  /* NFV Text Colors */
+  .text-nfv-ice { color: #e8f0fe; }
+  .text-nfv-ice-light { color: #b0c4de; }
+  .text-nfv-ice-medium { color: #6e8ca0; }
+  .text-nfv-ice-muted { color: #3d5a73; }
+
+  /* Animation utilities */
+  .animate-nfv-glow-pulse {
+    animation: nfv-glow-pulse 3s ease-in-out infinite;
+  }
+
+  .animate-nfv-aurora-breathe {
+    animation: nfv-aurora-breathe 20s ease-in-out infinite;
+  }
+
+  .animate-nfv-float {
+    animation: nfv-float 6s ease-in-out infinite;
+  }
+
+  .animate-nfv-shimmer {
+    animation: nfv-shimmer 2s linear infinite;
+  }
+
+  .animate-nfv-fade-up {
+    animation: nfv-fade-up 0.5s ease-out;
+  }
+}
+
+@keyframes nfv-glow-pulse {
+  0%, 100% {
+    opacity: 1;
+    filter: drop-shadow(0 0 8px rgba(41, 98, 255, 0.4));
+  }
+  50% {
+    opacity: 0.8;
+    filter: drop-shadow(0 0 20px rgba(0, 188, 212, 0.6));
+  }
+}
+
+@keyframes nfv-aurora-breathe {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.6;
+  }
+  33% {
+    transform: translate(30px, -30px) scale(1.1);
+    opacity: 0.8;
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+    opacity: 0.7;
+  }
+}
+
+@keyframes nfv-float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes nfv-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes nfv-fade-up {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
