@@ -10,7 +10,7 @@ const nextConfig = {
     const isDev = process.env.NODE_ENV === 'development';
     const cspConnectSrc = isDev
       ? "'self' http://localhost:3002 http://localhost:8000 http://127.0.0.1:8000 http://localhost:11434 https://api.nutrifitvision.com https://*.supabase.co https://api.stripe.com https://www.google-analytics.com wss://*.supabase.co"
-      : "'self' https://api.nutrifitvision.com https://nfv-api.nutrifitcoach.com.br https://*.supabase.co https://api.stripe.com https://www.google-analytics.com wss://*.supabase.co";
+      : "'self' https://*.up.railway.app https://api.nutrifitvision.com https://nfv-api.nutrifitcoach.com.br https://*.supabase.co https://api.stripe.com https://www.google-analytics.com wss://*.supabase.co";
 
     return [
       {

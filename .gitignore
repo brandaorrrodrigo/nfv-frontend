@@ -36,3 +36,5 @@ next-env.d.ts
 # logs
 *.log
 dev.log
+
+.vercel
