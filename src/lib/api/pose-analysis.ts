@@ -37,6 +37,16 @@ export const CATEGORY_POSES: Record<CategoryType, number> = {
   womens_physique: 7,
 };
 
+export const VALID_CATEGORIES: CategoryType[] = [
+  'mens_physique',
+  'classic_physique',
+  'bodybuilding',
+  'bikini',
+  'wellness',
+  'figure',
+  'womens_physique',
+];
+
 export const CATEGORY_GENDER: Record<CategoryType, 'M' | 'F' | 'MF'> = {
   mens_physique: 'M',
   bikini: 'F',

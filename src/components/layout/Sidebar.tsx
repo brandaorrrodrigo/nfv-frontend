@@ -17,6 +17,7 @@ import {
   ChevronRight,
   Eye,
   Trophy,
+  TrendingUp,
 } from 'lucide-react';
 
 interface NavItem {
@@ -40,6 +41,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
     { label: t('newAssessment'), href: '/avaliacao',           icon: Camera          },
     { label: t('history'),       href: '/avaliacao/historico', icon: History         },
     { label: 'Poses IFBB',       href: '/poses',               icon: Trophy          },
+    { label: 'Evolução',         href: '/poses/evolucao',      icon: TrendingUp      },
     { label: t('reports'),       href: '/relatorios',          icon: FileText        },
     { label: t('profile'),       href: '/perfil',              icon: User            },
     { label: t('plans'),         href: '/planos',              icon: CreditCard      },
