@@ -13,9 +13,9 @@ interface GlassCardProps {
 
 const paddingMap = {
   none: '',
-  sm: 'p-3',
-  md: 'p-5',
-  lg: 'p-7',
+  sm:   'p-4',
+  md:   'p-5',
+  lg:   'p-7',
 };
 
 export default function GlassCard({
@@ -28,7 +28,7 @@ export default function GlassCard({
 }: GlassCardProps) {
   const baseClasses = `
     relative rounded-2xl
-    bg-white/75 backdrop-blur-xl
+    bg-white backdrop-blur-xl
     border border-[rgba(0,188,212,0.12)]
     ${paddingMap[padding]}
     ${glow ? 'shadow-nfv-glow border-nfv-cyan/20' : 'shadow-nfv-frost'}
