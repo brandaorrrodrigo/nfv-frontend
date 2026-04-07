@@ -16,6 +16,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Eye,
+  Trophy,
 } from 'lucide-react';
 
 interface NavItem {
@@ -34,13 +35,14 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   const t = useTranslations('nav');
 
   const navItems: NavItem[] = [
-    { label: t('dashboard'), href: '/dashboard', icon: LayoutDashboard },
-    { label: t('clients'), href: '/clientes', icon: Users },
-    { label: t('newAssessment'), href: '/avaliacao', icon: Camera },
-    { label: t('history'), href: '/avaliacao/historico', icon: History },
-    { label: t('reports'), href: '/relatorios', icon: FileText },
-    { label: t('profile'), href: '/perfil', icon: User },
-    { label: t('plans'), href: '/planos', icon: CreditCard },
+    { label: t('dashboard'),     href: '/dashboard',           icon: LayoutDashboard },
+    { label: t('clients'),       href: '/clientes',            icon: Users           },
+    { label: t('newAssessment'), href: '/avaliacao',           icon: Camera          },
+    { label: t('history'),       href: '/avaliacao/historico', icon: History         },
+    { label: 'Poses IFBB',       href: '/poses',               icon: Trophy          },
+    { label: t('reports'),       href: '/relatorios',          icon: FileText        },
+    { label: t('profile'),       href: '/perfil',              icon: User            },
+    { label: t('plans'),         href: '/planos',              icon: CreditCard      },
   ];
 
   const isActive = (href: string) => {

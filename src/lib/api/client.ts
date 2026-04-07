@@ -16,6 +16,8 @@ import type {
 
 const NFV_API_URL = process.env.NEXT_PUBLIC_NFV_API_URL || 'http://localhost:3002/api/v1';
 const NFV_TOKEN_KEY = 'nfv_access_token';
+const NFV_COOKIE_KEY = 'nfv_token';
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 7 dias
 
 class NFVApiClient {
   private client: AxiosInstance;
@@ -43,7 +45,7 @@ class NFVApiClient {
       (response) => response,
       async (error: AxiosError) => {
         if (error.response?.status === 401 && typeof window !== 'undefined') {
-          localStorage.removeItem(NFV_TOKEN_KEY);
+          this.clearTokens();
           window.location.href = '/login';
         }
         return Promise.reject(error);
@@ -56,12 +58,16 @@ class NFVApiClient {
   setToken(accessToken: string) {
     if (typeof window !== 'undefined') {
       localStorage.setItem(NFV_TOKEN_KEY, accessToken);
+      // Setar cookie para o middleware Next.js conseguir ler
+      document.cookie = `${NFV_COOKIE_KEY}=${accessToken}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
     }
   }
 
   clearTokens() {
     if (typeof window !== 'undefined') {
       localStorage.removeItem(NFV_TOKEN_KEY);
+      // Limpar cookie
+      document.cookie = `${NFV_COOKIE_KEY}=; path=/; max-age=0`;
     }
   }
 
