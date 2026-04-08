@@ -20,7 +20,9 @@ export type CategoryType =
   | 'wellness'
   | 'bodybuilding'
   | 'figure'
-  | 'womens_physique';
+  | 'womens_physique'
+  | 'bodybuilding_212'
+  | 'womens_bodybuilding';
 
 export const CATEGORY_LABELS: Record<CategoryType, string> = {
   mens_physique: 'Mens Physique',
@@ -30,26 +32,32 @@ export const CATEGORY_LABELS: Record<CategoryType, string> = {
   bodybuilding: 'Bodybuilding Open',
   figure: 'Figure',
   womens_physique: "Women's Physique",
+  bodybuilding_212: '212 Bodybuilding',
+  womens_bodybuilding: "Women's Bodybuilding",
 };
 
 export const CATEGORY_POSES: Record<CategoryType, number> = {
-  mens_physique: 3,
-  bikini: 4,
-  classic_physique: 5,
-  wellness: 4,
-  bodybuilding: 8,
-  figure: 4,
-  womens_physique: 7,
+  mens_physique: 6,
+  bikini: 5,
+  classic_physique: 6,
+  wellness: 5,
+  bodybuilding: 9,
+  figure: 5,
+  womens_physique: 8,
+  bodybuilding_212: 9,
+  womens_bodybuilding: 9,
 };
 
 export const VALID_CATEGORIES: CategoryType[] = [
   'mens_physique',
   'classic_physique',
   'bodybuilding',
+  'bodybuilding_212',
   'bikini',
   'wellness',
   'figure',
   'womens_physique',
+  'womens_bodybuilding',
 ];
 
 export const CATEGORY_GENDER: Record<CategoryType, 'M' | 'F' | 'MF'> = {
@@ -60,6 +68,8 @@ export const CATEGORY_GENDER: Record<CategoryType, 'M' | 'F' | 'MF'> = {
   bodybuilding: 'M',
   figure: 'F',
   womens_physique: 'F',
+  bodybuilding_212: 'M',
+  womens_bodybuilding: 'F',
 };
 
 export interface LandmarkPoint {

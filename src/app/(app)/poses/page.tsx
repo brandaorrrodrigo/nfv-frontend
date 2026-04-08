@@ -13,10 +13,12 @@ const CATEGORY_ORDER: CategoryType[] = [
   'mens_physique',
   'classic_physique',
   'bodybuilding',
+  'bodybuilding_212',
   'bikini',
   'wellness',
   'figure',
   'womens_physique',
+  'womens_bodybuilding',
 ];
 
 interface SessionItem {
@@ -50,7 +52,7 @@ export default function PosesPage() {
             Análise de Pose
           </h1>
           <p className="text-xs text-nfv-ice-muted mt-1">
-            IFBB Pro League • 7 categorias • 35 poses
+            IFBB Pro League • 9 categorias • 62 poses
           </p>
         </div>
         <button
@@ -67,12 +69,12 @@ export default function PosesPage() {
         {[
           {
             label: 'Categorias',
-            value: '7',
+            value: '9',
             icon: <Trophy className="w-4 h-4 text-amber-400" />,
           },
           {
             label: 'Poses totais',
-            value: '35',
+            value: '62',
             icon: <Activity className="w-4 h-4 text-nfv-cyan" />,
           },
           {

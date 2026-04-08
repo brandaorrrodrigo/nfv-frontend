@@ -17,6 +17,8 @@ const CATEGORY_ICONS: Record<CategoryType, React.ReactNode> = {
   bodybuilding: <Dumbbell className="w-5 h-5" />,
   figure: <Star className="w-5 h-5" />,
   womens_physique: <Trophy className="w-5 h-5" />,
+  bodybuilding_212: <Dumbbell className="w-5 h-5" />,
+  womens_bodybuilding: <Dumbbell className="w-5 h-5" />,
 };
 
 const CATEGORY_COLORS: Record<CategoryType, string> = {
@@ -27,6 +29,10 @@ const CATEGORY_COLORS: Record<CategoryType, string> = {
   bodybuilding: 'from-red-500/20 to-red-600/10 border-red-400/20',
   figure: 'from-purple-500/20 to-purple-600/10 border-purple-400/20',
   womens_physique: 'from-rose-500/20 to-rose-600/10 border-rose-400/20',
+  bodybuilding_212:
+    'from-orange-500/20 to-orange-600/10 border-orange-400/20',
+  womens_bodybuilding:
+    'from-fuchsia-500/20 to-fuchsia-600/10 border-fuchsia-400/20',
 };
 
 const CATEGORY_ICON_COLORS: Record<CategoryType, string> = {
@@ -37,6 +43,8 @@ const CATEGORY_ICON_COLORS: Record<CategoryType, string> = {
   bodybuilding: 'text-red-400',
   figure: 'text-purple-400',
   womens_physique: 'text-rose-400',
+  bodybuilding_212: 'text-orange-400',
+  womens_bodybuilding: 'text-fuchsia-400',
 };
 
 const GENDER_LABEL: Record<string, string> = {
@@ -54,10 +62,12 @@ const CATEGORIES: CategoryType[] = [
   'mens_physique',
   'classic_physique',
   'bodybuilding',
+  'bodybuilding_212',
   'bikini',
   'wellness',
   'figure',
   'womens_physique',
+  'womens_bodybuilding',
 ];
 
 export default function CategorySelector({
