@@ -313,6 +313,120 @@ export const poseAnalysisApi = {
       'Timeout: a análise demorou mais de 2 minutos. Tente novamente com uma foto menor.',
     );
   },
+
+  // ─── Upload de vídeo → MediaPipe → múltiplas poses → protocolo ───────────
+  // Cria assessment do tipo POSE_ANALYSIS_VIDEO. O nfv-backend roda
+  // pose_analysis_video.py que extrai frames a 2fps, detecta segmentos
+  // estáticos, identifica cada pose IFBB e gera protocolo via nfc-core.
+  async uploadVideoAndAnalyze(
+    file: File,
+    categoria: CategoryType,
+    atletaId: string,
+    patientId: string,
+    onProgress?: (step: string) => void,
+  ): Promise<{
+    assessmentId: string;
+    status: string;
+    poses_detected?: Array<{
+      segmento_idx: number;
+      pose_id: string;
+      avg_confidence: number;
+      frames_no_segmento: number;
+      landmarks: Record<string, LandmarkPoint>;
+    }>;
+    session?: unknown;
+    protocol?: AthletePosingProtocol;
+    video_duration_s?: number;
+    total_poses_found?: number;
+    avg_confidence?: number;
+  }> {
+    onProgress?.('Convertendo vídeo...');
+
+    const base64 = await fileToBase64(file);
+    const token = readCookie('nfv_token');
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    onProgress?.('Enviando para o servidor...');
+
+    const createRes = await fetch(`${NFV_BACKEND}/assessments`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        patientId,
+        type: 'POSE_ANALYSIS_VIDEO',
+        mediaUrl: base64,
+        mediaType: 'VIDEO',
+        rawResults: { categoria, atletaId },
+      }),
+    });
+
+    if (!createRes.ok) {
+      const errText = await createRes.text().catch(() => '');
+      throw new Error(
+        `Falha ao criar assessment (${createRes.status}): ${errText.slice(0, 200)}`,
+      );
+    }
+
+    const created = await createRes.json();
+    const assessmentId: string = created.id ?? created.assessmentId;
+    if (!assessmentId) {
+      throw new Error('Resposta do backend sem assessmentId');
+    }
+
+    onProgress?.('Processando vídeo com MediaPipe...');
+
+    // Vídeos demoram mais — máximo 10 minutos (300 polls × 2s)
+    const MAX_POLLS = 300;
+    const POLL_INTERVAL_MS = 2000;
+
+    for (let attempt = 0; attempt < MAX_POLLS; attempt++) {
+      await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+
+      const statusRes = await fetch(
+        `${NFV_BACKEND}/assessments/${assessmentId}`,
+        { headers },
+      );
+      if (!statusRes.ok) continue;
+
+      const data = await statusRes.json();
+      const status: string = data.status;
+
+      if (status === 'COMPLETED') {
+        const raw = data.rawResults ?? {};
+        return {
+          assessmentId,
+          status,
+          poses_detected: raw.poses_detected,
+          session: raw.session,
+          protocol: raw.protocol,
+          video_duration_s: raw.video_duration_s,
+          total_poses_found: raw.total_poses_found,
+          avg_confidence: raw.avg_confidence,
+        };
+      }
+
+      if (status === 'FAILED') {
+        throw new Error(
+          data.errorMessage || 'Processamento do vídeo falhou.',
+        );
+      }
+
+      // Mensagens de progresso baseadas no tempo decorrido
+      const elapsed = (attempt * POLL_INTERVAL_MS) / 1000;
+      if (elapsed < 30) onProgress?.('Extraindo frames do vídeo...');
+      else if (elapsed < 60) onProgress?.('Detectando landmarks com MediaPipe...');
+      else if (elapsed < 120) onProgress?.('Identificando poses IFBB...');
+      else if (elapsed < 240) onProgress?.('Filtrando segmentos estáticos...');
+      else onProgress?.('Gerando protocolo personalizado...');
+    }
+
+    throw new Error(
+      'Timeout: processamento do vídeo demorou mais de 10 minutos.',
+    );
+  },
 };
 
 // ─── Helpers ────────────────────────────────────────────────────────────────

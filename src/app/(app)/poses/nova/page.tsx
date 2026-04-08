@@ -11,11 +11,13 @@ import {
   Zap,
   Sparkles,
   Image as ImageIcon,
+  Video as VideoIcon,
 } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
 import WizardStepper from '@/components/ui/WizardStepper';
 import CategorySelector from '@/components/features/poses/CategorySelector';
 import PhotoUpload from '@/components/features/poses/PhotoUpload';
+import VideoUpload from '@/components/features/poses/VideoUpload';
 import {
   poseAnalysisApi,
   MOCK_SYMMETRIC_LANDMARKS,
@@ -23,10 +25,12 @@ import {
 } from '@/lib/api/pose-analysis';
 import type { CategoryType } from '@/lib/api/pose-analysis';
 
-const STEPS = ['Categoria', 'Foto', 'Análise'];
+type AnalysisMode = 'photo' | 'video' | 'demo';
+
+const STEPS = ['Categoria', 'Mídia', 'Análise'];
 
 const PROCESSING_MESSAGES = [
-  'Enviando foto para o servidor...',
+  'Enviando para o servidor...',
   'Detectando landmarks corporais (MediaPipe)...',
   'Calculando ângulos articulares...',
   'Comparando com templates IFBB...',
@@ -42,10 +46,13 @@ function NovaPoseContent() {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [categoria, setCategoria] = useState<CategoryType | null>(null);
+  const [mode, setMode] = useState<AnalysisMode>('photo');
   const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [useRealPhoto, setUseRealPhoto] = useState(true);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoPreview, setVideoPreview] = useState<string | null>(null);
   const [, setLoading] = useState(false);
   const [processingStep, setProcessingStep] = useState(0);
+  const [videoProgress, setVideoProgress] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
 
   const slideVariants = {
@@ -56,8 +63,12 @@ function NovaPoseContent() {
 
   const handleAnalyze = async () => {
     if (!categoria) return;
-    if (useRealPhoto && !photoFile) {
+    if (mode === 'photo' && !photoFile) {
       setError('Selecione uma foto antes de continuar.');
+      return;
+    }
+    if (mode === 'video' && !videoFile) {
+      setError('Selecione um vídeo antes de continuar.');
       return;
     }
 
@@ -65,24 +76,57 @@ function NovaPoseContent() {
     setLoading(true);
     setError(null);
     setProcessingStep(0);
+    setVideoProgress('');
 
-    // Animação das mensagens de processamento (1.2s cada)
+    // Animação das mensagens (foto e demo). Vídeo usa onProgress dedicado.
     let msgIdx = 0;
-    const interval = setInterval(() => {
-      msgIdx++;
-      setProcessingStep(msgIdx);
-      if (msgIdx >= PROCESSING_MESSAGES.length - 1) clearInterval(interval);
-    }, 1200);
+    const interval =
+      mode === 'video'
+        ? null
+        : setInterval(() => {
+            msgIdx++;
+            setProcessingStep(msgIdx);
+            if (msgIdx >= PROCESSING_MESSAGES.length - 1 && interval) {
+              clearInterval(interval);
+            }
+          }, 1200);
 
     try {
       let cached: {
         protocol: unknown;
-        source: 'real_mediapipe' | 'mock';
+        source: 'real_mediapipe' | 'real_video' | 'mock';
         avg_confidence?: number;
+        poses_detected?: unknown;
+        video_duration_s?: number;
+        total_poses_found?: number;
       };
 
-      if (useRealPhoto && photoFile) {
-        // Pipeline real: foto → MediaPipe → nfc-core protocolo
+      if (mode === 'video' && videoFile) {
+        // Pipeline vídeo: extrai frames, segmenta poses, classifica e gera protocolo
+        const result = await poseAnalysisApi.uploadVideoAndAnalyze(
+          videoFile,
+          categoria,
+          ATLETA_ID,
+          PATIENT_ID,
+          (step) => setVideoProgress(step),
+        );
+
+        if (!result.protocol) {
+          throw new Error(
+            'Pipeline de vídeo retornou sem protocolo. Verifique se o nfc-core está rodando na porta 3100.',
+          );
+        }
+
+        cached = {
+          protocol: result.protocol,
+          source: 'real_video',
+          avg_confidence: result.avg_confidence,
+          poses_detected: result.poses_detected,
+          video_duration_s: result.video_duration_s,
+          total_poses_found: result.total_poses_found,
+        };
+      } else if (mode === 'photo' && photoFile) {
+        // Pipeline foto: foto → MediaPipe → protocolo
         const result = await poseAnalysisApi.uploadAndAnalyze(
           photoFile,
           categoria,
@@ -102,7 +146,7 @@ function NovaPoseContent() {
           avg_confidence: result.avg_confidence,
         };
       } else {
-        // Modo demo: usa landmarks mock simétricos
+        // Modo demo: landmarks mock simétricos
         const protocol = await poseAnalysisApi.generateProtocol(
           ATLETA_ID,
           categoria,
@@ -112,7 +156,7 @@ function NovaPoseContent() {
         cached = { protocol, source: 'mock' };
       }
 
-      clearInterval(interval);
+      if (interval) clearInterval(interval);
       setProcessingStep(PROCESSING_MESSAGES.length - 1);
 
       sessionStorage.setItem('pose_protocol', JSON.stringify(cached));
@@ -120,7 +164,7 @@ function NovaPoseContent() {
       await new Promise((r) => setTimeout(r, 600));
       router.push(`/poses/resultado?categoria=${categoria}`);
     } catch (err) {
-      clearInterval(interval);
+      if (interval) clearInterval(interval);
       const msg =
         err instanceof Error
           ? err.message
@@ -212,47 +256,82 @@ function NovaPoseContent() {
                   </p>
                 </div>
 
-                {/* Toggle real / mock */}
-                <div className="bg-[#f5f8fb] rounded-xl p-1 flex gap-1">
-                  <button
-                    type="button"
-                    onClick={() => setUseRealPhoto(true)}
-                    className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
-                      useRealPhoto
-                        ? 'bg-white text-nfv-cyan shadow-sm'
-                        : 'text-nfv-ice-muted hover:text-nfv-ice'
-                    }`}
-                  >
-                    <ImageIcon className="w-3.5 h-3.5" />
-                    Foto real
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setUseRealPhoto(false)}
-                    className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
-                      !useRealPhoto
-                        ? 'bg-white text-nfv-cyan shadow-sm'
-                        : 'text-nfv-ice-muted hover:text-nfv-ice'
-                    }`}
-                  >
-                    <Sparkles className="w-3.5 h-3.5" />
-                    Demo (mock)
-                  </button>
+                {/* Seletor de modo: foto / vídeo / demo */}
+                <div className="grid grid-cols-3 gap-2">
+                  {(
+                    [
+                      {
+                        key: 'photo',
+                        label: 'Foto',
+                        icon: <ImageIcon className="w-4 h-4" />,
+                        desc: 'Uma pose por vez',
+                      },
+                      {
+                        key: 'video',
+                        label: 'Vídeo',
+                        icon: <VideoIcon className="w-4 h-4" />,
+                        desc: 'Todas as poses',
+                      },
+                      {
+                        key: 'demo',
+                        label: 'Demo',
+                        icon: <Sparkles className="w-4 h-4" />,
+                        desc: 'Simulado',
+                      },
+                    ] as const
+                  ).map((m) => (
+                    <button
+                      key={m.key}
+                      type="button"
+                      onClick={() => setMode(m.key)}
+                      className={`p-3 rounded-xl border text-center transition-all ${
+                        mode === m.key
+                          ? 'border-nfv-cyan bg-nfv-cyan/10 shadow-sm'
+                          : 'border-[#d0dbe6] hover:border-nfv-cyan/30 hover:bg-[#f5f8fb]'
+                      }`}
+                    >
+                      <div className="flex justify-center text-nfv-cyan">
+                        {m.icon}
+                      </div>
+                      <p className="text-xs font-semibold text-nfv-ice mt-1">
+                        {m.label}
+                      </p>
+                      <p className="text-[10px] text-nfv-ice-muted">
+                        {m.desc}
+                      </p>
+                    </button>
+                  ))}
                 </div>
 
-                {useRealPhoto ? (
+                {mode === 'photo' && (
                   <PhotoUpload
                     onPhotoSelected={setPhotoFile}
                     selectedFile={photoFile}
                   />
-                ) : (
+                )}
+                {mode === 'video' && (
+                  <VideoUpload
+                    onVideoSelected={(file, url) => {
+                      setVideoFile(file);
+                      setVideoPreview(url);
+                    }}
+                    onClear={() => {
+                      setVideoFile(null);
+                      setVideoPreview(null);
+                    }}
+                    preview={videoPreview}
+                    fileName={videoFile?.name ?? null}
+                    fileSize={videoFile?.size ?? null}
+                  />
+                )}
+                {mode === 'demo' && (
                   <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
                     <p className="text-xs font-semibold text-amber-700 mb-1">
                       Modo demonstração
                     </p>
                     <p className="text-xs text-amber-600 leading-relaxed">
                       Usa landmarks simétricos perfeitos. Útil para testar a UI
-                      sem subir foto. Não reflete um atleta real.
+                      sem subir mídia. Não reflete um atleta real.
                     </p>
                   </div>
                 )}
@@ -280,11 +359,18 @@ function NovaPoseContent() {
 
                 <button
                   onClick={handleAnalyze}
-                  disabled={useRealPhoto && !photoFile}
+                  disabled={
+                    (mode === 'photo' && !photoFile) ||
+                    (mode === 'video' && !videoFile)
+                  }
                   className="w-full py-3 rounded-xl bg-nfv-aurora text-white text-sm font-semibold shadow-nfv hover:shadow-nfv-glow transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   <Trophy className="w-4 h-4" />
-                  Gerar Protocolo IFBB
+                  {mode === 'video'
+                    ? 'Analisar Vídeo Completo'
+                    : mode === 'photo'
+                      ? 'Analisar Foto'
+                      : 'Gerar Demo'}
                 </button>
               </GlassCard>
             </motion.div>
@@ -308,17 +394,21 @@ function NovaPoseContent() {
 
                   <div>
                     <h2 className="font-heading font-bold text-xl text-nfv-ice mb-2">
-                      Gerando Protocolo IFBB
+                      {mode === 'video'
+                        ? 'Analisando Vídeo Completo'
+                        : 'Gerando Protocolo IFBB'}
                     </h2>
                     <AnimatePresence mode="wait">
                       <motion.p
-                        key={processingStep}
+                        key={mode === 'video' ? videoProgress : processingStep}
                         initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -8 }}
                         className="text-sm text-nfv-cyan"
                       >
-                        {PROCESSING_MESSAGES[processingStep]}
+                        {mode === 'video'
+                          ? videoProgress || 'Iniciando...'
+                          : PROCESSING_MESSAGES[processingStep]}
                       </motion.p>
                     </AnimatePresence>
                   </div>
