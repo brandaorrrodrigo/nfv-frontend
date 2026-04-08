@@ -42,6 +42,16 @@ const PROCESSING_MESSAGES = [
 const ATLETA_ID = '9868cae8-9077-439f-b0c3-c1ce43198c00'; // TODO: auth
 const PATIENT_ID = '9868cae8-9077-439f-b0c3-c1ce43198c00'; // TODO: linkar com paciente real
 
+// Converte File em data URI base64 (persiste no sessionStorage entre páginas).
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
 function NovaPoseContent() {
   const router = useRouter();
   const [step, setStep] = useState(0);
@@ -99,6 +109,8 @@ function NovaPoseContent() {
         poses_detected?: unknown;
         video_duration_s?: number;
         total_poses_found?: number;
+        landmarks?: Record<string, unknown>;
+        image_data_url?: string | null;
       };
 
       if (mode === 'video' && videoFile) {
@@ -124,6 +136,8 @@ function NovaPoseContent() {
           poses_detected: result.poses_detected,
           video_duration_s: result.video_duration_s,
           total_poses_found: result.total_poses_found,
+          // Vídeo: sem foto única; o overlay vai usar landmarks sobre fundo escuro
+          image_data_url: null,
         };
       } else if (mode === 'photo' && photoFile) {
         // Pipeline foto: foto → MediaPipe → protocolo
@@ -140,10 +154,15 @@ function NovaPoseContent() {
           );
         }
 
+        // Converter o File da foto para base64 para persistir no sessionStorage
+        const imageBase64 = await fileToBase64(photoFile);
+
         cached = {
           protocol: result.protocol,
           source: 'real_mediapipe',
           avg_confidence: result.avg_confidence,
+          landmarks: result.landmarks as Record<string, unknown>,
+          image_data_url: imageBase64,
         };
       } else {
         // Modo demo: landmarks mock simétricos

@@ -16,6 +16,7 @@ import GlassCard from '@/components/ui/GlassCard';
 import ScoreCircle from '@/components/ui/ScoreCircle';
 import PoseScoreCard from '@/components/features/poses/PoseScoreCard';
 import AsymmetryAlert from '@/components/features/poses/AsymmetryAlert';
+import ChampionSideBySide from '@/components/features/poses/ChampionSideBySide';
 import {
   poseAnalysisApi,
   MOCK_SYMMETRIC_LANDMARKS,
@@ -26,6 +27,7 @@ import type {
   AsymmetryProfile,
   CategoryType,
 } from '@/lib/api/pose-analysis';
+import type { LandmarkPoint } from '@/lib/landmark-renderer';
 
 function ResultadoContent() {
   const router = useRouter();
@@ -35,11 +37,23 @@ function ResultadoContent() {
 
   const [protocol, setProtocol] = useState<AthletePosingProtocol | null>(null);
   const [asymmetries, setAsymmetries] = useState<AsymmetryProfile | null>(null);
-  const [source, setSource] = useState<'real_mediapipe' | 'mock' | null>(null);
+  const [source, setSource] = useState<
+    'real_mediapipe' | 'real_video' | 'mock' | null
+  >(null);
   const [avgConfidence, setAvgConfidence] = useState<number | null>(null);
+  const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
+  const [landmarks, setLandmarks] = useState<Record<
+    string,
+    LandmarkPoint
+  > | null>(null);
+  const [championAngles, setChampionAngles] = useState<Record<
+    string,
+    number
+  > | null>(null);
+  const [championName, setChampionName] = useState<string>('IFBB Pro League');
   const [activeTab, setActiveTab] = useState<
-    'protocol' | 'asymmetries' | 'priorities'
-  >('protocol');
+    'overlay' | 'protocol' | 'asymmetries' | 'priorities'
+  >('overlay');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -47,14 +61,16 @@ function ResultadoContent() {
     const cached = sessionStorage.getItem('pose_protocol');
     if (cached) {
       const parsed = JSON.parse(cached);
-      // Compatibilidade: novo formato { protocol, source, avg_confidence }
-      // ou formato antigo (objeto AthletePosingProtocol direto)
+      // Compatibilidade: novo formato { protocol, source, avg_confidence,
+      // landmarks, image_data_url } ou formato antigo (AthletePosingProtocol)
       if (parsed && typeof parsed === 'object' && 'source' in parsed) {
         setProtocol(parsed.protocol);
         setSource(parsed.source);
         if (typeof parsed.avg_confidence === 'number') {
           setAvgConfidence(parsed.avg_confidence);
         }
+        if (parsed.image_data_url) setImageDataUrl(parsed.image_data_url);
+        if (parsed.landmarks) setLandmarks(parsed.landmarks);
       } else {
         setProtocol(parsed);
       }
@@ -71,6 +87,20 @@ function ResultadoContent() {
       setLoading(false);
     }
   }, [categoria]);
+
+  // Buscar referência do campeão quando temos landmarks reais
+  useEffect(() => {
+    if (!categoria || !landmarks) return;
+    poseAnalysisApi
+      .compareWithChampions(atletaId, categoria, landmarks)
+      .then((result) => {
+        if (result?.melhor_match) {
+          setChampionName(result.melhor_match.atleta);
+          setChampionAngles(result.melhor_match.angulos_campeao);
+        }
+      })
+      .catch(console.error);
+  }, [categoria, landmarks]);
 
   if (loading || !protocol) {
     return (
@@ -89,6 +119,7 @@ function ResultadoContent() {
   const posesFortes = new Set(protocol.poses_mais_fortes);
 
   const TABS = [
+    { id: 'overlay', label: 'Overlay', count: landmarks ? 1 : 0 },
     { id: 'protocol', label: 'Protocolo', count: protocol.poses.length },
     {
       id: 'asymmetries',
@@ -236,6 +267,33 @@ function ResultadoContent() {
       </div>
 
       {/* Tab Content */}
+      {activeTab === 'overlay' && (
+        <div className="space-y-4">
+          {landmarks ? (
+            <ChampionSideBySide
+              atletaImageUrl={imageDataUrl}
+              atletaLandmarks={landmarks}
+              atletaConfidence={avgConfidence ?? undefined}
+              championName={championName}
+              championAngles={championAngles ?? {}}
+              categoria={CATEGORY_LABELS[categoria] ?? categoria}
+            />
+          ) : (
+            <GlassCard padding="lg" className="text-center py-10">
+              <p className="text-sm text-nfv-ice-muted">
+                Overlay disponível apenas para análises com foto ou vídeo real
+              </p>
+              <button
+                onClick={() => router.push('/poses/nova')}
+                className="mt-4 px-6 py-2.5 rounded-xl bg-nfv-aurora text-white text-sm font-semibold"
+              >
+                Fazer análise com foto
+              </button>
+            </GlassCard>
+          )}
+        </div>
+      )}
+
       {activeTab === 'protocol' && (
         <div className="space-y-3">
           {protocol.poses.map((pose, i) => (

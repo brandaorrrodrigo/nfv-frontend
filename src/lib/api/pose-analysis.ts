@@ -201,6 +201,42 @@ export const poseAnalysisApi = {
     return res.json();
   },
 
+  async compareWithChampions(
+    atletaId: string,
+    categoria: CategoryType,
+    landmarks: Record<string, LandmarkPoint>,
+    poseId?: string,
+  ): Promise<{
+    pose: string;
+    score_atleta: number;
+    comparacoes: Array<{
+      atleta: string;
+      similaridade: number;
+      angulos_campeao: Record<string, number>;
+    }>;
+    melhor_match: {
+      atleta: string;
+      similaridade: number;
+      angulos_campeao: Record<string, number>;
+    } | null;
+    gap_para_elite: number | null;
+  } | null> {
+    try {
+      const res = await fetch(
+        `${POSE_API}/nfv/pose-analysis/compare-champions`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ atletaId, categoria, landmarks, poseId }),
+        },
+      );
+      if (!res.ok) return null;
+      return res.json();
+    } catch {
+      return null;
+    }
+  },
+
   async analyzeSession(
     atletaId: string,
     categoria: CategoryType,
