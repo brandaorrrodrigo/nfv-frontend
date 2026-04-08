@@ -11,12 +11,14 @@ import {
   RotateCcw,
   ShieldCheck,
   Sparkles,
+  MessageCircle,
 } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
 import ScoreCircle from '@/components/ui/ScoreCircle';
 import PoseScoreCard from '@/components/features/poses/PoseScoreCard';
 import AsymmetryAlert from '@/components/features/poses/AsymmetryAlert';
 import ChampionSideBySide from '@/components/features/poses/ChampionSideBySide';
+import CoachChat from '@/components/features/poses/CoachChat';
 import {
   poseAnalysisApi,
   MOCK_SYMMETRIC_LANDMARKS,
@@ -55,6 +57,7 @@ function ResultadoContent() {
     'overlay' | 'protocol' | 'asymmetries' | 'priorities'
   >('overlay');
   const [loading, setLoading] = useState(true);
+  const [chatOpen, setChatOpen] = useState(false);
 
   useEffect(() => {
     // Tentar carregar do sessionStorage primeiro (vem da página nova)
@@ -418,6 +421,29 @@ function ResultadoContent() {
           </GlassCard>
         </div>
       )}
+
+      {/* Botão flutuante Coach IA */}
+      <motion.button
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.8, type: 'spring' }}
+        onClick={() => setChatOpen(true)}
+        className="fixed bottom-24 right-4 lg:bottom-8 lg:right-8 z-30 flex items-center gap-2 px-4 py-3 rounded-2xl bg-nfv-aurora text-white shadow-nfv hover:shadow-nfv-glow transition-all"
+      >
+        <MessageCircle className="w-5 h-5" />
+        <span className="text-sm font-semibold">Coach IA</span>
+        <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+      </motion.button>
+
+      {/* Coach Chat lateral */}
+      <CoachChat
+        isOpen={chatOpen}
+        onClose={() => setChatOpen(false)}
+        protocol={protocol}
+        asymmetries={asymmetries}
+        categoria={categoria}
+        confidence={avgConfidence}
+      />
     </div>
   );
 }
