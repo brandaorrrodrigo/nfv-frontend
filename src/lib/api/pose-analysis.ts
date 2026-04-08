@@ -8,6 +8,11 @@ const POSE_API_HOST =
   process.env.NEXT_PUBLIC_POSE_API_URL || 'http://localhost:3100';
 const POSE_API = `${POSE_API_HOST.replace(/\/$/, '')}/api`;
 
+// NFV Backend (assessments + MediaPipe pipeline) — porta 3002
+const NFV_BACKEND_HOST =
+  process.env.NEXT_PUBLIC_NFV_BACKEND_URL || 'http://localhost:3002';
+const NFV_BACKEND = `${NFV_BACKEND_HOST.replace(/\/$/, '')}/api/v1`;
+
 export type CategoryType =
   | 'mens_physique'
   | 'bikini'
@@ -200,4 +205,121 @@ export const poseAnalysisApi = {
     if (!res.ok) throw new Error(`Session error: ${res.status}`);
     return res.json();
   },
+
+  // ─── Upload de foto real → MediaPipe → nfc-core protocolo ────────────────
+  // Cria assessment do tipo POSE_ANALYSIS no nfv-backend, faz polling até
+  // o BullMQ rodar pose_analysis.py que extrai landmarks via MediaPipe e
+  // chama o nfc-core para gerar o protocolo IFBB completo.
+  async uploadAndAnalyze(
+    file: File,
+    categoria: CategoryType,
+    atletaId: string,
+    patientId: string,
+  ): Promise<{
+    assessmentId: string;
+    status: string;
+    landmarks: Record<string, LandmarkPoint>;
+    protocol: AthletePosingProtocol;
+    asymmetries: AsymmetryProfile | null;
+    scores: Record<string, number>;
+    avg_confidence?: number;
+  }> {
+    // 1. Foto → base64 data URI
+    const base64 = await fileToBase64(file);
+
+    // 2. Token do cookie nfv_token (se houver)
+    const token = readCookie('nfv_token');
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    // 3. POST /assessments
+    const createRes = await fetch(`${NFV_BACKEND}/assessments`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        patientId,
+        type: 'POSE_ANALYSIS',
+        mediaUrl: base64,
+        mediaType: 'PHOTO',
+        rawResults: { categoria, atletaId },
+      }),
+    });
+
+    if (!createRes.ok) {
+      const errText = await createRes.text().catch(() => '');
+      throw new Error(
+        `Falha ao criar assessment (${createRes.status}): ${errText.slice(0, 200)}`,
+      );
+    }
+
+    const created = await createRes.json();
+    const assessmentId: string = created.id ?? created.assessmentId;
+    if (!assessmentId) {
+      throw new Error('Resposta do backend sem assessmentId');
+    }
+
+    // 4. Polling — 60 tentativas × 2s = 120s máx
+    const MAX_POLLS = 60;
+    const POLL_INTERVAL_MS = 2000;
+
+    for (let attempt = 0; attempt < MAX_POLLS; attempt++) {
+      await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+
+      const statusRes = await fetch(
+        `${NFV_BACKEND}/assessments/${assessmentId}`,
+        { headers },
+      );
+      if (!statusRes.ok) continue;
+
+      const data = await statusRes.json();
+      const status: string = data.status;
+
+      if (status === 'COMPLETED') {
+        // O processor salva o resultado completo do pose_analysis.py em rawResults
+        const raw = data.rawResults ?? {};
+        return {
+          assessmentId,
+          status,
+          landmarks: raw.landmarks ?? data.landmarks ?? {},
+          protocol: raw.protocol ?? null,
+          asymmetries: raw.asymmetries ?? null,
+          scores: raw.scores ?? data.scores ?? {},
+          avg_confidence: raw.avg_confidence,
+        };
+      }
+
+      if (status === 'FAILED') {
+        throw new Error(
+          data.errorMessage ||
+            'Análise falhou. Verifique se a foto tem corpo inteiro visível.',
+        );
+      }
+      // status === PENDING / QUEUED / PROCESSING → continua polling
+    }
+
+    throw new Error(
+      'Timeout: a análise demorou mais de 2 minutos. Tente novamente com uma foto menor.',
+    );
+  },
 };
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
+function readCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie
+    .split('; ')
+    .find((row) => row.startsWith(`${name}=`));
+  return match ? decodeURIComponent(match.split('=')[1] ?? '') : null;
+}

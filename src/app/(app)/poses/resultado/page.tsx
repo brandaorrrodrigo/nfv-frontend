@@ -9,6 +9,8 @@ import {
   Zap,
   ChevronRight,
   RotateCcw,
+  ShieldCheck,
+  Sparkles,
 } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
 import ScoreCircle from '@/components/ui/ScoreCircle';
@@ -33,6 +35,8 @@ function ResultadoContent() {
 
   const [protocol, setProtocol] = useState<AthletePosingProtocol | null>(null);
   const [asymmetries, setAsymmetries] = useState<AsymmetryProfile | null>(null);
+  const [source, setSource] = useState<'real_mediapipe' | 'mock' | null>(null);
+  const [avgConfidence, setAvgConfidence] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<
     'protocol' | 'asymmetries' | 'priorities'
   >('protocol');
@@ -42,7 +46,18 @@ function ResultadoContent() {
     // Tentar carregar do sessionStorage primeiro (vem da página nova)
     const cached = sessionStorage.getItem('pose_protocol');
     if (cached) {
-      setProtocol(JSON.parse(cached));
+      const parsed = JSON.parse(cached);
+      // Compatibilidade: novo formato { protocol, source, avg_confidence }
+      // ou formato antigo (objeto AthletePosingProtocol direto)
+      if (parsed && typeof parsed === 'object' && 'source' in parsed) {
+        setProtocol(parsed.protocol);
+        setSource(parsed.source);
+        if (typeof parsed.avg_confidence === 'number') {
+          setAvgConfidence(parsed.avg_confidence);
+        }
+      } else {
+        setProtocol(parsed);
+      }
     }
 
     // Carregar assimetrias em paralelo
@@ -113,6 +128,38 @@ function ResultadoContent() {
           <RotateCcw className="w-4 h-4" />
         </button>
       </div>
+
+      {/* Source badge — origem do protocolo (foto real vs demo) */}
+      {source && (
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium border ${
+            source === 'real_mediapipe'
+              ? 'bg-green-50 border-green-200 text-green-700'
+              : 'bg-amber-50 border-amber-200 text-amber-700'
+          }`}
+        >
+          {source === 'real_mediapipe' ? (
+            <>
+              <ShieldCheck className="w-4 h-4 flex-shrink-0" />
+              <span className="flex-1">
+                Análise via foto real (MediaPipe)
+                {avgConfidence !== null && (
+                  <span className="ml-1 text-green-600">
+                    — confiança {Math.round(avgConfidence * 100)}%
+                  </span>
+                )}
+              </span>
+            </>
+          ) : (
+            <>
+              <Sparkles className="w-4 h-4 flex-shrink-0" />
+              <span>Modo demonstração — landmarks simétricos mock</span>
+            </>
+          )}
+        </motion.div>
+      )}
 
       {/* Score Overview */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
