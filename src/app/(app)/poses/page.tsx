@@ -34,22 +34,13 @@ export default function PosesPage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-heading font-bold text-2xl text-nfv-ice">
-            Análise de Pose
-          </h1>
-          <p className="text-xs text-nfv-ice-muted mt-1">
-            IFBB Pro League • 9 categorias • 62 poses
-          </p>
-        </div>
-        <button
-          onClick={() => router.push('/poses/nova')}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-nfv-aurora text-white text-sm font-semibold shadow-nfv hover:shadow-nfv-glow transition-all"
-        >
-          <Plus className="w-4 h-4" />
-          Nova
-        </button>
+      <div>
+        <h1 className="font-heading font-bold text-2xl text-nfv-ice">
+          Análise de Pose
+        </h1>
+        <p className="text-xs text-nfv-ice-muted mt-1">
+          IFBB Pro League • 9 categorias • 62 poses
+        </p>
       </div>
 
       {/* Stats rápidas */}

@@ -214,7 +214,7 @@ function NovaPoseContent() {
         </button>
         <div>
           <h1 className="font-heading font-bold text-2xl text-nfv-ice">
-            Nova Análise de Pose
+            Análise de Pose
           </h1>
           <p className="text-xs text-nfv-ice-muted">
             IFBB Pro League • 9 categorias
