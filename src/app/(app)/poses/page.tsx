@@ -86,65 +86,67 @@ export default function PosesPage() {
         ))}
       </div>
 
-      {/* CTA principal — leva ao wizard onde o CategorySelector aparece */}
-      <motion.button
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        onClick={() => router.push('/poses/nova')}
-        className="w-full flex items-center justify-center gap-3 p-5 rounded-2xl bg-nfv-aurora text-white font-semibold shadow-nfv hover:shadow-nfv-glow transition-all"
-      >
-        <Plus className="w-5 h-5" />
-        <span className="text-base">Nova análise IFBB</span>
-        <ChevronRight className="w-5 h-5" />
-      </motion.button>
-
-      {/* Histórico */}
+      {/* Histórico — só aparece quando há sessões; CTA azul vai junto */}
       {!loadingHistory && history.length > 0 && (
-        <div>
-          <h2 className="text-sm font-semibold text-nfv-ice-medium mb-3">
-            Últimas sessões
-          </h2>
-          <div className="space-y-2">
-            {history.slice(0, 5).map((session, i) => (
-              <motion.div
-                key={session.id}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-              >
-                <GlassCard padding="sm">
-                  <div className="flex items-center gap-3">
-                    <ScoreCircle score={session.scoreGeral} size="sm" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-nfv-ice">
-                        {CATEGORY_LABELS[session.categoria as CategoryType] ??
-                          session.categoria}
-                      </p>
-                      <p className="text-xs text-nfv-ice-muted">
-                        {new Date(session.dataAnalise).toLocaleDateString(
-                          'pt-BR',
-                        )}{' '}
-                        • {session.totalPoses} poses
-                      </p>
+        <>
+          <motion.button
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            onClick={() => router.push('/poses/nova')}
+            className="w-full flex items-center justify-center gap-3 p-5 rounded-2xl bg-nfv-aurora text-white font-semibold shadow-nfv hover:shadow-nfv-glow transition-all"
+          >
+            <Plus className="w-5 h-5" />
+            <span className="text-base">Nova análise IFBB</span>
+            <ChevronRight className="w-5 h-5" />
+          </motion.button>
+
+          <div>
+            <h2 className="text-sm font-semibold text-nfv-ice-medium mb-3">
+              Últimas sessões
+            </h2>
+            <div className="space-y-2">
+              {history.slice(0, 5).map((session, i) => (
+                <motion.div
+                  key={session.id}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                >
+                  <GlassCard padding="sm">
+                    <div className="flex items-center gap-3">
+                      <ScoreCircle score={session.scoreGeral} size="sm" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-nfv-ice">
+                          {CATEGORY_LABELS[
+                            session.categoria as CategoryType
+                          ] ?? session.categoria}
+                        </p>
+                        <p className="text-xs text-nfv-ice-muted">
+                          {new Date(session.dataAnalise).toLocaleDateString(
+                            'pt-BR',
+                          )}{' '}
+                          • {session.totalPoses} poses
+                        </p>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-nfv-ice-muted" />
                     </div>
-                    <ChevronRight className="w-4 h-4 text-nfv-ice-muted" />
-                  </div>
-                </GlassCard>
-              </motion.div>
-            ))}
+                  </GlassCard>
+                </motion.div>
+              ))}
+            </div>
           </div>
-        </div>
+        </>
       )}
 
-      {/* Empty state */}
+      {/* Empty state — único CTA quando não há histórico (header já tem +Nova) */}
       {!loadingHistory && history.length === 0 && (
         <GlassCard padding="lg" className="text-center py-10">
           <Trophy className="w-10 h-10 text-nfv-ice-muted mx-auto mb-3" />
           <p className="text-sm font-semibold text-nfv-ice">
-            Nenhuma análise ainda
+            Comece sua primeira análise
           </p>
           <p className="text-xs text-nfv-ice-muted mt-1 mb-4">
-            Crie sua primeira análise de pose IFBB Pro League
+            Envie uma foto ou vídeo fazendo suas poses mandatórias
           </p>
           <button
             onClick={() => router.push('/poses/nova')}
