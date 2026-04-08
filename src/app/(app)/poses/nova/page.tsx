@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft,
@@ -54,8 +54,14 @@ function fileToBase64(file: File): Promise<string> {
 
 function NovaPoseContent() {
   const router = useRouter();
-  const [step, setStep] = useState(0);
-  const [categoria, setCategoria] = useState<CategoryType | null>(null);
+  const searchParams = useSearchParams();
+  const categoriaParam = searchParams.get('categoria') as CategoryType | null;
+
+  // Se a categoria veio pela URL (clique direto da listagem), pula step 0
+  const [step, setStep] = useState(categoriaParam ? 1 : 0);
+  const [categoria, setCategoria] = useState<CategoryType | null>(
+    categoriaParam,
+  );
   const [mode, setMode] = useState<AnalysisMode>('photo');
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [videoFile, setVideoFile] = useState<File | null>(null);

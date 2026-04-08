@@ -9,18 +9,6 @@ import ScoreCircle from '@/components/ui/ScoreCircle';
 import { poseAnalysisApi, CATEGORY_LABELS } from '@/lib/api/pose-analysis';
 import type { CategoryType } from '@/lib/api/pose-analysis';
 
-const CATEGORY_ORDER: CategoryType[] = [
-  'mens_physique',
-  'classic_physique',
-  'bodybuilding',
-  'bodybuilding_212',
-  'bikini',
-  'wellness',
-  'figure',
-  'womens_physique',
-  'womens_bodybuilding',
-];
-
 interface SessionItem {
   id: string;
   scoreGeral: number;
@@ -98,34 +86,17 @@ export default function PosesPage() {
         ))}
       </div>
 
-      {/* Categorias disponíveis */}
-      <div>
-        <h2 className="text-sm font-semibold text-nfv-ice-medium mb-3">
-          Categorias IFBB Pro League
-        </h2>
-        <div className="space-y-2">
-          {CATEGORY_ORDER.map((cat, i) => (
-            <motion.button
-              key={cat}
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.05 }}
-              onClick={() => router.push(`/poses/nova?categoria=${cat}`)}
-              className="w-full flex items-center gap-3 p-3 rounded-xl bg-white border border-[#d0dbe6] hover:border-nfv-cyan/30 hover:bg-[#f5f8fb] transition-all text-left"
-            >
-              <div className="w-8 h-8 rounded-lg bg-nfv-aurora/10 flex items-center justify-center">
-                <Trophy className="w-4 h-4 text-nfv-aurora" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-nfv-ice">
-                  {CATEGORY_LABELS[cat]}
-                </p>
-              </div>
-              <ChevronRight className="w-4 h-4 text-nfv-ice-muted" />
-            </motion.button>
-          ))}
-        </div>
-      </div>
+      {/* CTA principal — leva ao wizard onde o CategorySelector aparece */}
+      <motion.button
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        onClick={() => router.push('/poses/nova')}
+        className="w-full flex items-center justify-center gap-3 p-5 rounded-2xl bg-nfv-aurora text-white font-semibold shadow-nfv hover:shadow-nfv-glow transition-all"
+      >
+        <Plus className="w-5 h-5" />
+        <span className="text-base">Nova análise IFBB</span>
+        <ChevronRight className="w-5 h-5" />
+      </motion.button>
 
       {/* Histórico */}
       {!loadingHistory && history.length > 0 && (
