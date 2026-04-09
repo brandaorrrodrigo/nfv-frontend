@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
 import PhotoUpload from './PhotoUpload';
+import PoseIllustration from './PoseIllustration';
 import {
   CATEGORY_POSE_LIST,
   PLANE_LABELS,
@@ -174,11 +175,9 @@ export default function PoseWizard({
           transition={{ duration: 0.2 }}
         >
           <GlassCard padding="lg" className="space-y-4">
-            {/* Header */}
+            {/* Header com ilustração */}
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-nfv-aurora/10 flex items-center justify-center flex-shrink-0">
-                <Camera className="w-5 h-5 text-nfv-aurora" />
-              </div>
+              <PoseIllustration poseId={currentPose.id} size="md" />
               <div className="flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className="text-sm font-bold text-nfv-ice">
@@ -188,7 +187,7 @@ export default function PoseWizard({
                     {PLANE_LABELS[currentPose.plano]}
                   </span>
                 </div>
-                <p className="text-xs text-nfv-ice-muted mt-1">
+                <p className="text-xs text-nfv-ice-muted mt-1 leading-relaxed">
                   {currentPose.instrucao}
                 </p>
               </div>
@@ -200,6 +199,20 @@ export default function PoseWizard({
                 💡 <strong>Dica:</strong> {currentPose.dica}
               </p>
             </div>
+
+            {/* Erros comuns */}
+            {currentPose.erros_comuns && currentPose.erros_comuns.length > 0 && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-3 space-y-1">
+                <p className="text-xs font-semibold text-red-700">
+                  ❌ Erros comuns a evitar:
+                </p>
+                {currentPose.erros_comuns.map((erro, j) => (
+                  <p key={j} className="text-xs text-red-600">
+                    • {erro}
+                  </p>
+                ))}
+              </div>
+            )}
 
             {/* Upload da foto (reutiliza PhotoUpload existente) */}
             <PhotoUpload
