@@ -72,6 +72,105 @@ export const CATEGORY_GENDER: Record<CategoryType, 'M' | 'F' | 'MF'> = {
   womens_bodybuilding: 'F',
 };
 
+export interface PoseInfo {
+  id: string;
+  nome: string;
+  nome_pt: string;
+  plano: 'frontal' | 'posterior' | 'sagital' | 'diagonal';
+  instrucao: string;
+  dica: string;
+}
+
+export const PLANE_LABELS: Record<string, string> = {
+  frontal: '⬜ Frente para a câmera',
+  posterior: '⬛ Costas para a câmera',
+  sagital: '◧ Lateral para a câmera',
+  diagonal: '◈ Diagonal para a câmera',
+};
+
+export const CATEGORY_POSE_LIST: Record<CategoryType, PoseInfo[]> = {
+  mens_physique: [
+    { id: 'front_double_biceps_open', nome: 'Front Double Biceps', nome_pt: 'Duplo Bíceps Frontal', plano: 'frontal', instrucao: 'Fique de frente, levante os braços com cotovelos na altura dos ombros, abra as mãos', dica: 'Pés paralelos, joelhos levemente dobrados, abdômen contraído' },
+    { id: 'back_pose', nome: 'Back Pose', nome_pt: 'Pose de Costas', plano: 'posterior', instrucao: 'Vire de costas, abra os dorsais, um pé levemente atrás na ponta', dica: 'Ombros para trás e para baixo, cintura estreita' },
+    { id: 'quarter_turn_front', nome: 'Quarter Turn Front', nome_pt: 'Quarto de Volta — Frente', plano: 'frontal', instrucao: 'Postura neutra de frente, pés paralelos na largura dos ombros', dica: 'Olhar fixo à frente, ombros abertos, abdômen contraído' },
+    { id: 'quarter_turn_right', nome: 'Quarter Turn Right', nome_pt: 'Quarter Turn — Lateral Direito', plano: 'sagital', instrucao: 'Vire o lado direito para a câmera, pé direito levemente à frente', dica: 'Tronco completamente lateral, joelho dianteiro levemente dobrado' },
+    { id: 'quarter_turn_left', nome: 'Quarter Turn Left', nome_pt: 'Quarter Turn — Lateral Esquerdo', plano: 'sagital', instrucao: 'Vire o lado esquerdo para a câmera, pé esquerdo levemente à frente', dica: 'Mesmo padrão do lateral direito — lado oposto' },
+    { id: 'neutral_stage_presence', nome: 'Stage Presence', nome_pt: 'Postura de Palco', plano: 'frontal', instrucao: 'Postura neutra competitiva — como você fica esperando entre as poses', dica: 'Pés paralelos, ombros abertos, mãos naturais ao lado do corpo' },
+  ],
+  classic_physique: [
+    { id: 'front_double_biceps', nome: 'Front Double Biceps', nome_pt: 'Duplo Bíceps Frontal', plano: 'frontal', instrucao: 'De frente, cotovelos levemente abaixo de 90°, punhos fechados', dica: 'Pico máximo do bíceps — cotovelo levemente abaixo da linha do ombro' },
+    { id: 'side_chest', nome: 'Side Chest', nome_pt: 'Peitoral Lateral', plano: 'sagital', instrucao: 'Lateral para a câmera, braço frontal cruzando o tórax, joelho dianteiro dobrado', dica: 'Escolha o melhor lado — maximize a espessura do peitoral' },
+    { id: 'back_double_biceps', nome: 'Back Double Biceps', nome_pt: 'Duplo Bíceps Costas', plano: 'posterior', instrucao: 'De costas, mesmo posição do front double biceps, um pé atrás na ponta', dica: 'Mostre a cintura estreita — diferencial do Classic Physique' },
+    { id: 'side_triceps', nome: 'Side Triceps', nome_pt: 'Tríceps Lateral', plano: 'sagital', instrucao: 'Lateral para a câmera, braço estendido ao lado do corpo mostrando o tríceps', dica: 'Extensão máxima — separa o tríceps lateralmente' },
+    { id: 'abdominals_thighs', nome: 'Abdominals & Thighs', nome_pt: 'Abdômen e Coxas', plano: 'frontal', instrucao: 'De frente, mãos atrás da nuca, joelho dianteiro dobrado, contraia o abdômen', dica: 'Não empurre o abdômen — contraia e mostre a definição' },
+    { id: 'neutral_stage_presence', nome: 'Stage Presence', nome_pt: 'Postura de Palco', plano: 'frontal', instrucao: 'Postura neutra competitiva', dica: 'Pés paralelos, ombros abertos, mãos naturais' },
+  ],
+  bikini: [
+    { id: 'quarter_turn_front', nome: 'Quarter Turn Front', nome_pt: 'Quarto de Volta — Frente', plano: 'frontal', instrucao: 'De frente, postura elegante, um pé ligeiramente à frente do outro', dica: 'Sorriso natural, ombros para trás, quadril levemente projetado' },
+    { id: 'quarter_turn_right', nome: 'Quarter Turn Right', nome_pt: 'Quarto de Volta — Lateral Direito', plano: 'sagital', instrucao: 'Lateral direita para a câmera, postura elegante', dica: 'Glúteo contraído, coluna ereta, expressão confiante' },
+    { id: 'quarter_turn_back', nome: 'Quarter Turn Back', nome_pt: 'Quarto de Volta — Costas', plano: 'posterior', instrucao: 'De costas para a câmera, postura elegante', dica: 'Glúteo firme, postura vertical, não se curve' },
+    { id: 'quarter_turn_left', nome: 'Quarter Turn Left', nome_pt: 'Quarto de Volta — Lateral Esquerdo', plano: 'sagital', instrucao: 'Lateral esquerda para a câmera', dica: 'Mesmo padrão do lateral direito' },
+    { id: 'neutral_stage_presence', nome: 'Stage Presence', nome_pt: 'Postura de Palco', plano: 'frontal', instrucao: 'Postura neutra competitiva feminina', dica: 'Elegante, confiante, sorriso natural' },
+  ],
+  wellness: [
+    { id: 'quarter_turn_front', nome: 'Quarter Turn Front', nome_pt: 'Quarto de Volta — Frente', plano: 'frontal', instrucao: 'De frente, postura elegante destacando a proporção', dica: 'Glúteo e coxas desenvolvidos são o foco — posicione para valorizar' },
+    { id: 'quarter_turn_right', nome: 'Quarter Turn Right', nome_pt: 'Quarto de Volta — Lateral Direito', plano: 'sagital', instrucao: 'Lateral direita para a câmera', dica: 'Perfil do glúteo e coxas — diferencial do Wellness' },
+    { id: 'quarter_turn_back', nome: 'Quarter Turn Back', nome_pt: 'Quarto de Volta — Costas', plano: 'posterior', instrucao: 'De costas para a câmera', dica: 'Glúteo e isquiotibiais são avaliados aqui' },
+    { id: 'quarter_turn_left', nome: 'Quarter Turn Left', nome_pt: 'Quarto de Volta — Lateral Esquerdo', plano: 'sagital', instrucao: 'Lateral esquerda para a câmera', dica: 'Mesmo padrão do lateral direito' },
+    { id: 'neutral_stage_presence', nome: 'Stage Presence', nome_pt: 'Postura de Palco', plano: 'frontal', instrucao: 'Postura neutra competitiva', dica: 'Feminina e confiante' },
+  ],
+  bodybuilding: [
+    { id: 'bb_front_double_biceps', nome: 'Front Double Biceps', nome_pt: 'Duplo Bíceps Frontal', plano: 'frontal', instrucao: 'De frente, cotovelos na linha dos ombros, punhos fechados', dica: 'Máxima contração — cada músculo visível' },
+    { id: 'bb_front_lat_spread', nome: 'Front Lat Spread', nome_pt: 'Abertura de Dorsais Frontal', plano: 'frontal', instrucao: 'De frente, cotovelos para baixo e para fora, mãos no quadril abrindo os dorsais', dica: 'V-taper máximo' },
+    { id: 'bb_side_chest', nome: 'Side Chest', nome_pt: 'Peitoral Lateral', plano: 'sagital', instrucao: 'Lateral para a câmera, braço frontal cruzando o tórax', dica: 'Espessura máxima do peitoral' },
+    { id: 'bb_back_double_biceps', nome: 'Back Double Biceps', nome_pt: 'Duplo Bíceps Costas', plano: 'posterior', instrucao: 'De costas, mesma posição do front, um pé atrás na ponta', dica: 'Densidade muscular posterior total' },
+    { id: 'bb_back_lat_spread', nome: 'Back Lat Spread', nome_pt: 'Abertura de Dorsais Costas', plano: 'posterior', instrucao: 'De costas, abrindo os dorsais ao máximo', dica: 'Largura máxima de costas' },
+    { id: 'bb_side_triceps', nome: 'Side Triceps', nome_pt: 'Tríceps Lateral', plano: 'sagital', instrucao: 'Lateral para a câmera, tríceps estendido', dica: 'Separação máxima do tríceps' },
+    { id: 'bb_abdominals_thighs', nome: 'Abdominals & Thighs', nome_pt: 'Abdômen e Coxas', plano: 'frontal', instrucao: 'De frente, mãos atrás da nuca, joelho dianteiro dobrado', dica: 'Definição abdominal e separação do quad' },
+    { id: 'bb_most_muscular', nome: 'Most Muscular', nome_pt: 'Pose Mais Muscular', plano: 'frontal', instrucao: 'Crab ou mãos no quadril — contração máxima de todo o corpo', dica: 'Máxima densidade e separação muscular' },
+    { id: 'neutral_stage_presence', nome: 'Stage Presence', nome_pt: 'Postura de Palco', plano: 'frontal', instrucao: 'Postura neutra entre poses', dica: 'Nunca relaxe — os juízes sempre estão olhando' },
+  ],
+  figure: [
+    { id: 'fig_quarter_turn_front', nome: 'Quarter Turn Front', nome_pt: 'Quarto de Volta — Frente', plano: 'frontal', instrucao: 'De frente, postura elegante com musculatura desenvolvida', dica: 'Figure é entre Bikini e Women\'s Physique — mostre músculo com feminilidade' },
+    { id: 'fig_quarter_turn_right', nome: 'Quarter Turn Right', nome_pt: 'Quarto de Volta — Lateral Direito', plano: 'sagital', instrucao: 'Lateral direita para a câmera', dica: 'Perfil da musculatura' },
+    { id: 'fig_quarter_turn_back', nome: 'Quarter Turn Back', nome_pt: 'Quarto de Volta — Costas', plano: 'posterior', instrucao: 'De costas para a câmera', dica: 'Musculatura posterior desenvolvida' },
+    { id: 'fig_quarter_turn_left', nome: 'Quarter Turn Left', nome_pt: 'Quarto de Volta — Lateral Esquerdo', plano: 'sagital', instrucao: 'Lateral esquerda para a câmera', dica: 'Mesmo padrão do lateral direito' },
+    { id: 'neutral_stage_presence', nome: 'Stage Presence', nome_pt: 'Postura de Palco', plano: 'frontal', instrucao: 'Postura neutra competitiva', dica: 'Elegante e musculosa' },
+  ],
+  womens_physique: [
+    { id: 'wp_front_double_biceps', nome: 'Front Double Biceps', nome_pt: 'Duplo Bíceps Frontal', plano: 'frontal', instrucao: 'De frente, cotovelos na linha dos ombros', dica: 'Musculatura feminina desenvolvida' },
+    { id: 'wp_front_lat_spread', nome: 'Front Lat Spread', nome_pt: 'Abertura de Dorsais Frontal', plano: 'frontal', instrucao: 'De frente, abrindo os dorsais', dica: 'V-taper feminino de elite' },
+    { id: 'wp_side_chest', nome: 'Side Chest', nome_pt: 'Peitoral Lateral', plano: 'sagital', instrucao: 'Lateral para a câmera, peitoral lateral', dica: 'Espessura com feminilidade' },
+    { id: 'wp_back_double_biceps', nome: 'Back Double Biceps', nome_pt: 'Duplo Bíceps Costas', plano: 'posterior', instrucao: 'De costas, duplo bíceps', dica: 'Densidade muscular posterior' },
+    { id: 'wp_back_lat_spread', nome: 'Back Lat Spread', nome_pt: 'Abertura de Dorsais Costas', plano: 'posterior', instrucao: 'De costas, abrindo dorsais', dica: 'V-taper de costas' },
+    { id: 'wp_side_triceps', nome: 'Side Triceps', nome_pt: 'Tríceps Lateral', plano: 'sagital', instrucao: 'Lateral, tríceps estendido', dica: 'Separação do tríceps' },
+    { id: 'wp_abdominals_thighs', nome: 'Abdominals & Thighs', nome_pt: 'Abdômen e Coxas', plano: 'frontal', instrucao: 'De frente, mãos atrás da nuca', dica: 'Definição abdominal feminina' },
+    { id: 'neutral_stage_presence', nome: 'Stage Presence', nome_pt: 'Postura de Palco', plano: 'frontal', instrucao: 'Postura neutra competitiva', dica: 'Musculosa e feminina' },
+  ],
+  bodybuilding_212: [
+    { id: 'b212_front_double_biceps', nome: 'Front Double Biceps', nome_pt: 'Duplo Bíceps Frontal', plano: 'frontal', instrucao: 'De frente, cotovelos na linha dos ombros', dica: 'No 212, simetria é mais decisiva que tamanho' },
+    { id: 'b212_front_lat_spread', nome: 'Front Lat Spread', nome_pt: 'Abertura de Dorsais Frontal', plano: 'frontal', instrucao: 'De frente, abrindo dorsais', dica: 'V-taper proporcional ao frame' },
+    { id: 'b212_side_chest', nome: 'Side Chest', nome_pt: 'Peitoral Lateral', plano: 'sagital', instrucao: 'Lateral, peitoral lateral', dica: 'Espessura proporcional' },
+    { id: 'b212_back_double_biceps', nome: 'Back Double Biceps', nome_pt: 'Duplo Bíceps Costas', plano: 'posterior', instrucao: 'De costas, duplo bíceps', dica: 'Cintura estreita — diferencial do 212' },
+    { id: 'b212_back_lat_spread', nome: 'Back Lat Spread', nome_pt: 'Abertura de Dorsais Costas', plano: 'posterior', instrucao: 'De costas, abrindo dorsais', dica: 'V-taper proporcional' },
+    { id: 'b212_side_triceps', nome: 'Side Triceps', nome_pt: 'Tríceps Lateral', plano: 'sagital', instrucao: 'Lateral, tríceps estendido', dica: 'Separação do tríceps' },
+    { id: 'b212_abdominals_thighs', nome: 'Abdominals & Thighs', nome_pt: 'Abdômen e Coxas', plano: 'frontal', instrucao: 'De frente, mãos atrás da nuca', dica: 'Definição pode superar o Open' },
+    { id: 'b212_most_muscular', nome: 'Most Muscular', nome_pt: 'Pose Mais Muscular', plano: 'frontal', instrucao: 'Crab ou mãos no quadril — contração máxima', dica: 'Densidade compensa volume menor' },
+    { id: 'neutral_stage_presence', nome: 'Stage Presence', nome_pt: 'Postura de Palco', plano: 'frontal', instrucao: 'Postura neutra entre poses', dica: 'Nunca relaxe' },
+  ],
+  womens_bodybuilding: [
+    { id: 'wb_front_double_biceps', nome: 'Front Double Biceps', nome_pt: 'Duplo Bíceps Frontal', plano: 'frontal', instrucao: 'De frente, cotovelos na linha dos ombros', dica: 'Musculatura extrema é valorizada' },
+    { id: 'wb_front_lat_spread', nome: 'Front Lat Spread', nome_pt: 'Abertura de Dorsais Frontal', plano: 'frontal', instrucao: 'De frente, abrindo dorsais', dica: 'V-taper feminino de elite' },
+    { id: 'wb_side_chest', nome: 'Side Chest', nome_pt: 'Peitoral Lateral', plano: 'sagital', instrucao: 'Lateral, peitoral lateral', dica: 'Espessura com feminilidade' },
+    { id: 'wb_back_double_biceps', nome: 'Back Double Biceps', nome_pt: 'Duplo Bíceps Costas', plano: 'posterior', instrucao: 'De costas, duplo bíceps', dica: 'Musculatura posterior máxima' },
+    { id: 'wb_back_lat_spread', nome: 'Back Lat Spread', nome_pt: 'Abertura de Dorsais Costas', plano: 'posterior', instrucao: 'De costas, abrindo dorsais', dica: 'Largura máxima' },
+    { id: 'wb_side_triceps', nome: 'Side Triceps', nome_pt: 'Tríceps Lateral', plano: 'sagital', instrucao: 'Lateral, tríceps estendido', dica: 'Separação máxima' },
+    { id: 'wb_abdominals_thighs', nome: 'Abdominals & Thighs', nome_pt: 'Abdômen e Coxas', plano: 'frontal', instrucao: 'De frente, mãos atrás da nuca', dica: 'Definição extrema' },
+    { id: 'wb_most_muscular', nome: 'Most Muscular', nome_pt: 'Pose Mais Muscular', plano: 'frontal', instrucao: 'Crab ou mãos no quadril', dica: 'Única categoria feminina com Most Muscular' },
+    { id: 'neutral_stage_presence', nome: 'Stage Presence', nome_pt: 'Postura de Palco', plano: 'frontal', instrucao: 'Postura neutra competitiva', dica: 'Feminilidade é avaliada mesmo em repouso' },
+  ],
+};
+
 export interface LandmarkPoint {
   x: number;
   y: number;
@@ -261,6 +360,7 @@ export const poseAnalysisApi = {
     categoria: CategoryType,
     atletaId: string,
     patientId: string,
+    poseId?: string,
   ): Promise<{
     assessmentId: string;
     status: string;
@@ -289,7 +389,7 @@ export const poseAnalysisApi = {
         type: 'POSE_ANALYSIS',
         mediaUrl: base64,
         mediaType: 'PHOTO',
-        rawResults: { categoria, atletaId },
+        rawResults: { categoria, atletaId, ...(poseId ? { poseId } : {}) },
       }),
     });
 

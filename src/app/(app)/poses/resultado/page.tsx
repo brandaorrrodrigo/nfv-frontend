@@ -40,7 +40,7 @@ function ResultadoContent() {
   const [protocol, setProtocol] = useState<AthletePosingProtocol | null>(null);
   const [asymmetries, setAsymmetries] = useState<AsymmetryProfile | null>(null);
   const [source, setSource] = useState<
-    'real_mediapipe' | 'real_video' | 'mock' | null
+    'real_mediapipe' | 'real_mediapipe_pose_by_pose' | 'real_video' | 'mock' | null
   >(null);
   const [avgConfidence, setAvgConfidence] = useState<number | null>(null);
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
@@ -177,11 +177,13 @@ function ResultadoContent() {
               : 'bg-amber-50 border-amber-200 text-amber-700'
           }`}
         >
-          {source === 'real_mediapipe' ? (
+          {source === 'real_mediapipe' || source === 'real_mediapipe_pose_by_pose' ? (
             <>
               <ShieldCheck className="w-4 h-4 flex-shrink-0" />
               <span className="flex-1">
-                Análise via foto real (MediaPipe)
+                {source === 'real_mediapipe_pose_by_pose'
+                  ? 'Análise pose a pose (MediaPipe)'
+                  : 'Análise via foto real (MediaPipe)'}
                 {avgConfidence !== null && (
                   <span className="ml-1 text-green-600">
                     — confiança {Math.round(avgConfidence * 100)}%

@@ -12,12 +12,15 @@ import {
   Sparkles,
   Image as ImageIcon,
   Video as VideoIcon,
+  Camera,
 } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
 import WizardStepper from '@/components/ui/WizardStepper';
 import CategorySelector from '@/components/features/poses/CategorySelector';
 import PhotoUpload from '@/components/features/poses/PhotoUpload';
 import VideoUpload from '@/components/features/poses/VideoUpload';
+import PoseWizard from '@/components/features/poses/PoseWizard';
+import type { PoseCapture } from '@/components/features/poses/PoseWizard';
 import {
   poseAnalysisApi,
   MOCK_SYMMETRIC_LANDMARKS,
@@ -25,7 +28,7 @@ import {
 } from '@/lib/api/pose-analysis';
 import type { CategoryType } from '@/lib/api/pose-analysis';
 
-type AnalysisMode = 'photo' | 'video' | 'demo';
+type AnalysisMode = 'pose_by_pose' | 'photo' | 'video' | 'demo';
 
 const STEPS = ['Categoria', 'Mídia', 'Análise'];
 
@@ -88,7 +91,7 @@ function NovaPoseContent() {
   const [categoria, setCategoria] = useState<CategoryType | null>(
     categoriaParam,
   );
-  const [mode, setMode] = useState<AnalysisMode>('photo');
+  const [mode, setMode] = useState<AnalysisMode>('pose_by_pose');
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
@@ -101,6 +104,58 @@ function NovaPoseContent() {
     enter: { opacity: 0, x: 30 },
     center: { opacity: 1, x: 0 },
     exit: { opacity: 0, x: -30 },
+  };
+
+  // Upload de uma pose individual (usado pelo PoseWizard)
+  const uploadSinglePose = async (file: File, poseId: string) => {
+    return poseAnalysisApi.uploadAndAnalyze(
+      file,
+      categoria!,
+      DEFAULT_ATLETA_ID,
+      DEFAULT_PATIENT_ID,
+      poseId,
+    );
+  };
+
+  // Conclusão do wizard pose-a-pose
+  const handlePoseWizardComplete = async (captures: PoseCapture[]) => {
+    setStep(2);
+    setProcessingStep(0);
+
+    const validCaptures = captures.filter(
+      (c) => c.status === 'done' && c.result,
+    );
+
+    if (validCaptures.length === 0) {
+      setError('Nenhuma pose analisada com sucesso');
+      setStep(1);
+      return;
+    }
+
+    const firstResult = validCaptures[0]!.result as Record<string, unknown>;
+    const firstProtocol = firstResult.protocol as Record<string, unknown>;
+
+    try {
+      sessionStorage.setItem(
+        'pose_protocol',
+        JSON.stringify({
+          protocol: firstProtocol,
+          source: 'real_mediapipe_pose_by_pose',
+          avg_confidence: firstResult.avg_confidence,
+          landmarks: firstResult.landmarks,
+          poses_count: validCaptures.length,
+        }),
+      );
+
+      sessionStorage.removeItem('pose_image');
+
+      setProcessingStep(PROCESSING_MESSAGES.length - 1);
+      await new Promise((r) => setTimeout(r, 400));
+      router.push(`/poses/resultado?categoria=${categoria}`);
+    } catch {
+      setError('Erro ao consolidar resultados');
+      setStep(1);
+    }
   };
 
   const handleAnalyze = async () => {
@@ -318,15 +373,21 @@ function NovaPoseContent() {
                   </p>
                 </div>
 
-                {/* Seletor de modo: foto / vídeo / demo */}
-                <div className="grid grid-cols-3 gap-2">
+                {/* Seletor de modo */}
+                <div className="grid grid-cols-2 gap-2">
                   {(
                     [
                       {
+                        key: 'pose_by_pose',
+                        label: 'Pose a pose',
+                        icon: <Camera className="w-4 h-4" />,
+                        desc: 'Análise precisa',
+                      },
+                      {
                         key: 'photo',
-                        label: 'Foto',
+                        label: 'Foto única',
                         icon: <ImageIcon className="w-4 h-4" />,
-                        desc: 'Uma pose por vez',
+                        desc: 'Uma pose',
                       },
                       {
                         key: 'video',
@@ -365,6 +426,14 @@ function NovaPoseContent() {
                   ))}
                 </div>
 
+                {mode === 'pose_by_pose' && categoria && (
+                  <PoseWizard
+                    categoria={categoria}
+                    onComplete={handlePoseWizardComplete}
+                    onCancel={() => setStep(0)}
+                    uploadFn={uploadSinglePose}
+                  />
+                )}
                 {mode === 'photo' && (
                   <PhotoUpload
                     onPhotoSelected={setPhotoFile}
@@ -419,21 +488,24 @@ function NovaPoseContent() {
                   </div>
                 )}
 
-                <button
-                  onClick={handleAnalyze}
-                  disabled={
-                    (mode === 'photo' && !photoFile) ||
-                    (mode === 'video' && !videoFile)
-                  }
-                  className="w-full py-3 rounded-xl bg-nfv-aurora text-white text-sm font-semibold shadow-nfv hover:shadow-nfv-glow transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  <Trophy className="w-4 h-4" />
-                  {mode === 'video'
-                    ? 'Analisar Vídeo Completo'
-                    : mode === 'photo'
-                      ? 'Analisar Foto'
-                      : 'Gerar Demo'}
-                </button>
+                {/* Botão de análise — oculto no modo pose_by_pose (PoseWizard tem os seus) */}
+                {mode !== 'pose_by_pose' && (
+                  <button
+                    onClick={handleAnalyze}
+                    disabled={
+                      (mode === 'photo' && !photoFile) ||
+                      (mode === 'video' && !videoFile)
+                    }
+                    className="w-full py-3 rounded-xl bg-nfv-aurora text-white text-sm font-semibold shadow-nfv hover:shadow-nfv-glow transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    <Trophy className="w-4 h-4" />
+                    {mode === 'video'
+                      ? 'Analisar Vídeo Completo'
+                      : mode === 'photo'
+                        ? 'Analisar Foto'
+                        : 'Gerar Demo'}
+                  </button>
+                )}
               </GlassCard>
             </motion.div>
           )}
