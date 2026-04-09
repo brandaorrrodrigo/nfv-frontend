@@ -70,6 +70,11 @@ function ResultadoContent() {
   const [loading, setLoading] = useState(true);
   const [chatOpen, setChatOpen] = useState(false);
 
+  // Resetar título da aba (pode ter sido alterado pela notificação)
+  useEffect(() => {
+    document.title = 'NutriFitVision';
+  }, []);
+
   useEffect(() => {
     // Tentar carregar do sessionStorage primeiro (vem da página nova)
     const cached = sessionStorage.getItem('pose_protocol');

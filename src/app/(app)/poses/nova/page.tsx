@@ -13,6 +13,8 @@ import {
   Image as ImageIcon,
   Video as VideoIcon,
   Camera,
+  CheckCircle,
+  AlertCircle,
 } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
 import WizardStepper from '@/components/ui/WizardStepper';
@@ -115,6 +117,15 @@ function NovaPoseContent() {
   const [processingStep, setProcessingStep] = useState(0);
   const [videoProgress, setVideoProgress] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
+  const [toast, setToast] = useState<{
+    type: 'success' | 'error';
+    msg: string;
+  } | null>(null);
+
+  const showToast = (type: 'success' | 'error', msg: string) => {
+    setToast({ type, msg });
+    setTimeout(() => setToast(null), 4000);
+  };
 
   const slideVariants = {
     enter: { opacity: 0, x: 30 },
@@ -184,6 +195,15 @@ function NovaPoseContent() {
   };
 
   const handleAnalyze = async () => {
+    // Pedir permissão de notificação do browser (não-bloqueante)
+    if (
+      typeof window !== 'undefined' &&
+      'Notification' in window &&
+      Notification.permission === 'default'
+    ) {
+      Notification.requestPermission();
+    }
+
     if (!categoria) return;
     if (mode === 'photo' && !photoFile) {
       setError('Selecione uma foto antes de continuar.');
@@ -286,6 +306,26 @@ function NovaPoseContent() {
       setProcessingStep(PROCESSING_MESSAGES.length - 1);
 
       sessionStorage.setItem('pose_protocol', JSON.stringify(cached));
+
+      // Notificação do browser (se permitido)
+      if (
+        typeof window !== 'undefined' &&
+        'Notification' in window &&
+        Notification.permission === 'granted'
+      ) {
+        new Notification('Análise concluída!', {
+          body: `Sua análise de ${CATEGORY_LABELS[categoria!]} está pronta.`,
+          icon: '/icon-192.png',
+        });
+      }
+
+      // Título da aba (feedback visual se o user trocou de aba)
+      document.title = '✅ Análise pronta — NFV';
+      setTimeout(() => {
+        document.title = 'NutriFitVision';
+      }, 5000);
+
+      showToast('success', 'Análise concluída! Redirecionando...');
 
       // Salvar foto SEPARADA — redimensionada para ~100KB (cabe no sessionStorage).
       // Se falhar (quota ou sem foto), ignora — overlay funciona sem ela.
@@ -626,6 +666,29 @@ function NovaPoseContent() {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Toast notification */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className={`fixed bottom-24 left-4 right-4 z-50 flex items-center gap-3 p-4 rounded-2xl shadow-xl ${
+              toast.type === 'success'
+                ? 'bg-green-500 text-white'
+                : 'bg-red-500 text-white'
+            }`}
+          >
+            {toast.type === 'success' ? (
+              <CheckCircle className="w-5 h-5 flex-shrink-0" />
+            ) : (
+              <AlertCircle className="w-5 h-5 flex-shrink-0" />
+            )}
+            <p className="text-sm font-semibold">{toast.msg}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Camera fullscreen modal */}
       {cameraOpen && (
