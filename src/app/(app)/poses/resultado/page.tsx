@@ -21,6 +21,7 @@ import ChampionSideBySide from '@/components/features/poses/ChampionSideBySide';
 import CoachChat from '@/components/features/poses/CoachChat';
 import ShareCard from '@/components/features/poses/ShareCard';
 import WeeklyPlan from '@/components/features/poses/WeeklyPlan';
+import PoseReport from '@/components/features/poses/PoseReport';
 import { useAuthContext } from '@/components/providers/AuthProvider';
 import {
   poseAnalysisApi,
@@ -58,7 +59,13 @@ function ResultadoContent() {
   > | null>(null);
   const [championName, setChampionName] = useState<string>('IFBB Pro League');
   const [activeTab, setActiveTab] = useState<
-    'overlay' | 'protocol' | 'asymmetries' | 'priorities' | 'plan' | 'share'
+    | 'overlay'
+    | 'protocol'
+    | 'asymmetries'
+    | 'priorities'
+    | 'plan'
+    | 'report'
+    | 'share'
   >('overlay');
   const [loading, setLoading] = useState(true);
   const [chatOpen, setChatOpen] = useState(false);
@@ -142,6 +149,7 @@ function ResultadoContent() {
       count: protocol.prioridades_treino_posing.length,
     },
     { id: 'plan', label: 'Plano', count: 7 },
+    { id: 'report', label: 'Relatório', count: 0 },
     { id: 'share', label: 'Compartilhar', count: 0 },
   ] as const;
 
@@ -435,6 +443,16 @@ function ResultadoContent() {
 
       {activeTab === 'plan' && (
         <WeeklyPlan protocol={protocol} categoria={categoria} />
+      )}
+
+      {activeTab === 'report' && (
+        <PoseReport
+          protocol={protocol}
+          asymmetries={asymmetries}
+          categoria={categoria}
+          confidence={avgConfidence}
+          userName={user?.name}
+        />
       )}
 
       {activeTab === 'share' && (
