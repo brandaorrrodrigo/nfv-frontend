@@ -22,6 +22,8 @@ import VideoUpload from '@/components/features/poses/VideoUpload';
 import PoseWizard from '@/components/features/poses/PoseWizard';
 import type { PoseCapture } from '@/components/features/poses/PoseWizard';
 import CameraCapture from '@/components/features/poses/CameraCapture';
+import AthleteSelector from '@/components/features/poses/AthleteSelector';
+import type { NFVPatient } from '@/lib/api/types';
 import {
   poseAnalysisApi,
   MOCK_SYMMETRIC_LANDMARKS,
@@ -29,7 +31,6 @@ import {
 } from '@/lib/api/pose-analysis';
 import type { CategoryType } from '@/lib/api/pose-analysis';
 import { useAuthContext } from '@/components/providers/AuthProvider';
-import { api } from '@/lib/api';
 
 type AnalysisMode = 'pose_by_pose' | 'photo' | 'video' | 'demo';
 
@@ -89,27 +90,10 @@ function NovaPoseContent() {
   const categoriaParam = searchParams.get('categoria') as CategoryType | null;
   const { user } = useAuthContext();
 
-  // Buscar ou criar paciente padrão ao carregar
-  const [patientId, setPatientId] = useState<string | null>(null);
-  useEffect(() => {
-    if (!user) return;
-    api
-      .listPatients()
-      .then(async (res) => {
-        if (res.data.length > 0) {
-          setPatientId(res.data[0]!.id);
-        } else {
-          const patient = await api.createPatient({
-            name: user.name || 'Atleta',
-            gender: 'MALE',
-            height: 178,
-            weight: 85,
-          });
-          setPatientId(patient.id);
-        }
-      })
-      .catch(console.error);
-  }, [user]);
+  // Atleta selecionado pelo coach
+  const [selectedPatient, setSelectedPatient] = useState<NFVPatient | null>(
+    null,
+  );
 
   // Se a categoria veio pela URL (clique direto da listagem), pula step 0
   const [step, setStep] = useState(categoriaParam ? 1 : 0);
@@ -122,7 +106,8 @@ function NovaPoseContent() {
   const [cameraOpen, setCameraOpen] = useState(false);
   const [cameraMode, setCameraMode] = useState<'photo' | 'video'>('photo');
 
-  const atletaId = user?.id ?? 'unknown';
+  const atletaId = selectedPatient?.id ?? user?.id ?? 'unknown';
+  const patientId = selectedPatient?.id ?? '';
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
@@ -145,15 +130,6 @@ function NovaPoseContent() {
       setVideoPreview(URL.createObjectURL(file));
     }
   };
-
-  // Loading enquanto patientId não disponível
-  if (!patientId) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="w-8 h-8 border-2 border-nfv-cyan/30 border-t-nfv-cyan rounded-full animate-spin" />
-      </div>
-    );
-  }
 
   // Upload de uma pose individual (usado pelo PoseWizard)
   const uploadSinglePose = async (file: File, poseId: string) => {
@@ -377,21 +353,38 @@ function NovaPoseContent() {
               exit="exit"
               transition={{ duration: 0.22 }}
             >
-              <GlassCard padding="lg" className="space-y-4">
+              <GlassCard padding="lg" className="space-y-5">
+                {/* 1. Selecionar atleta */}
                 <div>
-                  <h2 className="font-heading font-semibold text-lg text-nfv-ice">
-                    Selecione a categoria
+                  <h2 className="text-sm font-semibold text-nfv-ice-medium mb-3">
+                    1. Selecione o atleta
                   </h2>
-                  <p className="text-xs text-nfv-ice-muted mt-1">
-                    Categoria de competição IFBB Pro League
-                  </p>
+                  <AthleteSelector
+                    selectedId={selectedPatient?.id ?? null}
+                    onSelect={setSelectedPatient}
+                  />
                 </div>
 
-                <CategorySelector selected={categoria} onSelect={setCategoria} />
+                {/* 2. Selecionar categoria (aparece após selecionar atleta) */}
+                {selectedPatient && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="space-y-3"
+                  >
+                    <h2 className="text-sm font-semibold text-nfv-ice-medium">
+                      2. Selecione a categoria
+                    </h2>
+                    <CategorySelector
+                      selected={categoria}
+                      onSelect={setCategoria}
+                    />
+                  </motion.div>
+                )}
 
                 <button
                   onClick={() => setStep(1)}
-                  disabled={!categoria}
+                  disabled={!categoria || !selectedPatient}
                   className="w-full py-3 rounded-xl bg-nfv-aurora text-white text-sm font-semibold shadow-nfv hover:shadow-nfv-glow transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   Continuar <ChevronRight className="w-4 h-4" />
