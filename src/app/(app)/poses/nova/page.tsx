@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -21,12 +21,15 @@ import PhotoUpload from '@/components/features/poses/PhotoUpload';
 import VideoUpload from '@/components/features/poses/VideoUpload';
 import PoseWizard from '@/components/features/poses/PoseWizard';
 import type { PoseCapture } from '@/components/features/poses/PoseWizard';
+import CameraCapture from '@/components/features/poses/CameraCapture';
 import {
   poseAnalysisApi,
   MOCK_SYMMETRIC_LANDMARKS,
   CATEGORY_LABELS,
 } from '@/lib/api/pose-analysis';
 import type { CategoryType } from '@/lib/api/pose-analysis';
+import { useAuthContext } from '@/components/providers/AuthProvider';
+import { api } from '@/lib/api';
 
 type AnalysisMode = 'pose_by_pose' | 'photo' | 'video' | 'demo';
 
@@ -42,8 +45,7 @@ const PROCESSING_MESSAGES = [
   'Gerando protocolo personalizado...',
 ];
 
-const DEFAULT_ATLETA_ID = '9868cae8-9077-439f-b0c3-c1ce43198c00'; // TODO: auth
-const DEFAULT_PATIENT_ID = 'fc08cf1a-eb92-406b-824b-a44b0bd35113'; // TODO: linkar com paciente real
+// IDs obsoletos removidos — agora usa auth real via useAuthContext()
 
 // Converte File em data URI base64 (usado no upload para o backend).
 function fileToBase64(file: File): Promise<string> {
@@ -85,6 +87,29 @@ function NovaPoseContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const categoriaParam = searchParams.get('categoria') as CategoryType | null;
+  const { user } = useAuthContext();
+
+  // Buscar ou criar paciente padrão ao carregar
+  const [patientId, setPatientId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!user) return;
+    api
+      .listPatients()
+      .then(async (res) => {
+        if (res.data.length > 0) {
+          setPatientId(res.data[0]!.id);
+        } else {
+          const patient = await api.createPatient({
+            name: user.name || 'Atleta',
+            gender: 'MALE',
+            height: 178,
+            weight: 85,
+          });
+          setPatientId(patient.id);
+        }
+      })
+      .catch(console.error);
+  }, [user]);
 
   // Se a categoria veio pela URL (clique direto da listagem), pula step 0
   const [step, setStep] = useState(categoriaParam ? 1 : 0);
@@ -92,6 +117,12 @@ function NovaPoseContent() {
     categoriaParam,
   );
   const [mode, setMode] = useState<AnalysisMode>('pose_by_pose');
+
+  // Câmera
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraMode, setCameraMode] = useState<'photo' | 'video'>('photo');
+
+  const atletaId = user?.id ?? 'unknown';
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
@@ -106,13 +137,31 @@ function NovaPoseContent() {
     exit: { opacity: 0, x: -30 },
   };
 
+  const handleCameraCapture = (file: File) => {
+    if (cameraMode === 'photo') {
+      setPhotoFile(file);
+    } else {
+      setVideoFile(file);
+      setVideoPreview(URL.createObjectURL(file));
+    }
+  };
+
+  // Loading enquanto patientId não disponível
+  if (!patientId) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="w-8 h-8 border-2 border-nfv-cyan/30 border-t-nfv-cyan rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   // Upload de uma pose individual (usado pelo PoseWizard)
   const uploadSinglePose = async (file: File, poseId: string) => {
     return poseAnalysisApi.uploadAndAnalyze(
       file,
       categoria!,
-      DEFAULT_ATLETA_ID,
-      DEFAULT_PATIENT_ID,
+      atletaId,
+      patientId!,
       poseId,
     );
   };
@@ -204,8 +253,8 @@ function NovaPoseContent() {
         const result = await poseAnalysisApi.uploadVideoAndAnalyze(
           videoFile,
           categoria,
-          DEFAULT_ATLETA_ID,
-          DEFAULT_PATIENT_ID,
+          atletaId,
+          patientId!,
           (step) => setVideoProgress(step),
         );
 
@@ -228,8 +277,8 @@ function NovaPoseContent() {
         const result = await poseAnalysisApi.uploadAndAnalyze(
           photoFile,
           categoria,
-          DEFAULT_ATLETA_ID,
-          DEFAULT_PATIENT_ID,
+          atletaId,
+          patientId!,
         );
 
         if (!result.protocol) {
@@ -249,7 +298,7 @@ function NovaPoseContent() {
       } else {
         // Modo demo: landmarks mock simétricos
         const protocol = await poseAnalysisApi.generateProtocol(
-          DEFAULT_ATLETA_ID,
+          atletaId,
           categoria,
           MOCK_SYMMETRIC_LANDMARKS,
           true,
@@ -467,6 +516,23 @@ function NovaPoseContent() {
                   </div>
                 )}
 
+                {/* Botões de câmera — alternativa ao upload de arquivo */}
+                {(mode === 'photo' || mode === 'video') && (
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCameraMode(mode === 'video' ? 'video' : 'photo');
+                        setCameraOpen(true);
+                      }}
+                      className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-[#d0dbe6] text-xs font-semibold text-nfv-ice hover:border-nfv-cyan/30 transition-all"
+                    >
+                      <Camera className="w-3.5 h-3.5" />
+                      Usar câmera
+                    </button>
+                  </div>
+                )}
+
                 {/* What to expect */}
                 <div className="space-y-2 pt-2 border-t border-[#d0dbe6]">
                   {[
@@ -567,6 +633,15 @@ function NovaPoseContent() {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Camera fullscreen modal */}
+      {cameraOpen && (
+        <CameraCapture
+          mode={cameraMode}
+          onCapture={handleCameraCapture}
+          onClose={() => setCameraOpen(false)}
+        />
+      )}
     </div>
   );
 }

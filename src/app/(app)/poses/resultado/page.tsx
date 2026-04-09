@@ -19,6 +19,9 @@ import PoseScoreCard from '@/components/features/poses/PoseScoreCard';
 import AsymmetryAlert from '@/components/features/poses/AsymmetryAlert';
 import ChampionSideBySide from '@/components/features/poses/ChampionSideBySide';
 import CoachChat from '@/components/features/poses/CoachChat';
+import ShareCard from '@/components/features/poses/ShareCard';
+import WeeklyPlan from '@/components/features/poses/WeeklyPlan';
+import { useAuthContext } from '@/components/providers/AuthProvider';
 import {
   poseAnalysisApi,
   MOCK_SYMMETRIC_LANDMARKS,
@@ -35,7 +38,8 @@ function ResultadoContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const categoria = searchParams.get('categoria') as CategoryType;
-  const atletaId = '9868cae8-9077-439f-b0c3-c1ce43198c00';
+  const { user } = useAuthContext();
+  const atletaId = user?.id ?? 'unknown';
 
   const [protocol, setProtocol] = useState<AthletePosingProtocol | null>(null);
   const [asymmetries, setAsymmetries] = useState<AsymmetryProfile | null>(null);
@@ -54,7 +58,7 @@ function ResultadoContent() {
   > | null>(null);
   const [championName, setChampionName] = useState<string>('IFBB Pro League');
   const [activeTab, setActiveTab] = useState<
-    'overlay' | 'protocol' | 'asymmetries' | 'priorities'
+    'overlay' | 'protocol' | 'asymmetries' | 'priorities' | 'plan' | 'share'
   >('overlay');
   const [loading, setLoading] = useState(true);
   const [chatOpen, setChatOpen] = useState(false);
@@ -137,6 +141,8 @@ function ResultadoContent() {
       label: 'Prioridades',
       count: protocol.prioridades_treino_posing.length,
     },
+    { id: 'plan', label: 'Plano', count: 7 },
+    { id: 'share', label: 'Compartilhar', count: 0 },
   ] as const;
 
   return (
@@ -425,6 +431,19 @@ function ResultadoContent() {
             </button>
           </GlassCard>
         </div>
+      )}
+
+      {activeTab === 'plan' && (
+        <WeeklyPlan protocol={protocol} categoria={categoria} />
+      )}
+
+      {activeTab === 'share' && (
+        <ShareCard
+          protocol={protocol}
+          categoria={categoria}
+          confidence={avgConfidence}
+          userName={user?.name}
+        />
       )}
 
       {/* Botão flutuante Coach IA */}
