@@ -11,6 +11,7 @@ import {
 import GlassCard from '@/components/ui/GlassCard';
 import PhotoUpload from './PhotoUpload';
 import PoseIllustration from './PoseIllustration';
+import CameraCapture from './CameraCapture';
 import {
   CATEGORY_POSE_LIST,
   PLANE_LABELS,
@@ -43,12 +44,19 @@ export default function PoseWizard({
   const [currentFile, setCurrentFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
 
   const currentPose = poses[currentPoseIdx];
   const isLast = currentPoseIdx === poses.length - 1;
   const progress = Math.round(
     ((currentPoseIdx + (currentFile ? 0.5 : 0)) / poses.length) * 100,
   );
+
+  const handleCameraCapture = useCallback((file: File) => {
+    setCurrentFile(file);
+    setCameraOpen(false);
+    setError(null);
+  }, []);
 
   const handlePhotoSelected = useCallback((file: File | null) => {
     setCurrentFile(file);
@@ -226,41 +234,71 @@ export default function PoseWizard({
               </div>
             )}
 
-            {/* Botões */}
-            <div className="flex gap-2">
+            {/* Ações: câmera + pular */}
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => setCameraOpen(true)}
+                disabled={uploading}
+                className="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-[#d0dbe6] text-xs font-semibold text-nfv-ice hover:border-nfv-cyan/30 transition-all disabled:opacity-30"
+              >
+                <Camera className="w-3.5 h-3.5" />
+                Abrir câmera
+              </button>
               <button
                 onClick={handleSkip}
                 disabled={uploading}
-                className="flex-1 py-2.5 rounded-xl border border-[#d0dbe6] text-sm text-nfv-ice-muted hover:border-nfv-cyan/30 transition-all disabled:opacity-30"
+                className="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-[#d0dbe6] text-xs font-semibold text-nfv-ice-muted hover:border-nfv-cyan/30 transition-all disabled:opacity-30"
               >
                 Pular pose
               </button>
-              <button
-                onClick={handleNext}
-                disabled={!currentFile || uploading}
-                className="flex-1 py-2.5 rounded-xl bg-nfv-aurora text-white text-sm font-semibold shadow-nfv hover:shadow-nfv-glow transition-all disabled:opacity-30 flex items-center justify-center gap-2"
-              >
-                {uploading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Analisando...
-                  </>
-                ) : isLast ? (
-                  <>
-                    <CheckCircle className="w-4 h-4" />
-                    Finalizar
-                  </>
-                ) : (
-                  <>
-                    Próxima pose
-                    <ChevronRight className="w-4 h-4" />
-                  </>
-                )}
-              </button>
             </div>
+
+            {/* Botão principal */}
+            <button
+              onClick={handleNext}
+              disabled={!currentFile || uploading}
+              className="w-full py-2.5 rounded-xl bg-nfv-aurora text-white text-sm font-semibold shadow-nfv hover:shadow-nfv-glow transition-all disabled:opacity-30 flex items-center justify-center gap-2"
+            >
+              {uploading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Analisando...
+                </>
+              ) : isLast ? (
+                <>
+                  <CheckCircle className="w-4 h-4" />
+                  Finalizar
+                </>
+              ) : (
+                <>
+                  Próxima pose
+                  <ChevronRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
           </GlassCard>
         </motion.div>
       </AnimatePresence>
+
+      {/* Câmera fullscreen com instrução da pose */}
+      {cameraOpen && currentPose && (
+        <div className="fixed inset-0 z-50">
+          {/* Instrução flutuante sobre o viewfinder */}
+          <div className="absolute top-16 left-0 right-0 z-[60] px-4 pointer-events-none">
+            <div className="bg-black/70 text-white text-xs text-center p-3 rounded-xl backdrop-blur-sm">
+              <p className="font-bold text-nfv-cyan mb-1">
+                {currentPose.nome_pt}
+              </p>
+              <p className="text-[11px] opacity-80">{currentPose.instrucao}</p>
+            </div>
+          </div>
+          <CameraCapture
+            mode="photo"
+            onCapture={handleCameraCapture}
+            onClose={() => setCameraOpen(false)}
+          />
+        </div>
+      )}
     </div>
   );
 }
