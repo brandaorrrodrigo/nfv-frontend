@@ -304,11 +304,70 @@ export const poseAnalysisApi = {
     return res.json();
   },
 
-  async getHistory(atletaId: string, categoria?: CategoryType) {
-    const url = `${POSE_API}/nfv/pose-analysis/history/${atletaId}${categoria ? `?categoria=${categoria}` : ''}`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`History error: ${res.status}`);
-    return res.json();
+  async getHistory(
+    _atletaId: string,
+    _categoria?: CategoryType,
+  ): Promise<
+    {
+      id: string;
+      scoreGeral: number;
+      categoria: string;
+      dataAnalise: string;
+      totalPoses: number;
+      ganho: number;
+      source: string;
+    }[]
+  > {
+    try {
+      // Importar api dinamicamente para evitar circular dependency
+      const { api } = await import('@/lib/api');
+      const res = await api.listAssessments({
+        type: 'POSE_ANALYSIS',
+        status: 'COMPLETED',
+        limit: 20,
+      });
+
+      return (res.data ?? []).map((assessment) => {
+        // rawResults não está no tipo NFVAssessment mas vem do DB
+        const raw = (assessment as unknown as Record<string, unknown>).rawResults as
+          | Record<string, unknown>
+          | undefined;
+        const protocol = raw?.protocol as Record<string, unknown> | undefined;
+        const poses = (protocol?.poses as Array<Record<string, number>>) ?? [];
+        const scoreGeral =
+          poses.length > 0
+            ? Math.round(
+                poses.reduce(
+                  (a, p) => a + (p.score_estimado_com_ajuste ?? 0),
+                  0,
+                ) / poses.length,
+              )
+            : ((assessment.scores as unknown as Record<string, number> | null)
+                ?.score_geral ?? 0);
+
+        // categoria pode estar em rawResults.ai_insights ou rawResults diretamente
+        const aiInsights = raw?.ai_insights as
+          | Record<string, unknown>
+          | undefined;
+        const categoria =
+          (aiInsights?.categoria as string) ??
+          (raw?.categoria as string) ??
+          'unknown';
+
+        return {
+          id: assessment.id,
+          scoreGeral,
+          categoria,
+          dataAnalise: assessment.completedAt ?? assessment.createdAt,
+          totalPoses: poses.length,
+          ganho: (protocol?.ganho_total_estimado as number) ?? 0,
+          source: (raw?.source as string) ?? 'unknown',
+        };
+      });
+    } catch (err) {
+      console.error('getHistory error:', err);
+      return [];
+    }
   },
 
   async getCategories() {

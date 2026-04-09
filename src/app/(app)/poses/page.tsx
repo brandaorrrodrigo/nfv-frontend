@@ -8,6 +8,7 @@ import GlassCard from '@/components/ui/GlassCard';
 import ScoreCircle from '@/components/ui/ScoreCircle';
 import { poseAnalysisApi, CATEGORY_LABELS } from '@/lib/api/pose-analysis';
 import type { CategoryType } from '@/lib/api/pose-analysis';
+import { useAuthContext } from '@/components/providers/AuthProvider';
 
 interface SessionItem {
   id: string;
@@ -15,21 +16,24 @@ interface SessionItem {
   categoria: string;
   dataAnalise: string;
   totalPoses: number;
+  ganho?: number;
+  source?: string;
 }
 
 export default function PosesPage() {
   const router = useRouter();
-  const atletaId = '9868cae8-9077-439f-b0c3-c1ce43198c00';
+  const { user } = useAuthContext();
   const [history, setHistory] = useState<SessionItem[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
 
   useEffect(() => {
+    if (!user) return;
     poseAnalysisApi
-      .getHistory(atletaId)
-      .then((data: SessionItem[]) => setHistory(data))
+      .getHistory(user.id)
+      .then((data) => setHistory(data as SessionItem[]))
       .catch(() => setHistory([]))
       .finally(() => setLoadingHistory(false));
-  }, [atletaId]);
+  }, [user]);
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -115,11 +119,19 @@ export default function PosesPage() {
                         <p className="text-xs text-nfv-ice-muted">
                           {new Date(session.dataAnalise).toLocaleDateString(
                             'pt-BR',
-                          )}{' '}
-                          • {session.totalPoses} poses
+                          )}
+                          {session.totalPoses > 0 &&
+                            ` · ${session.totalPoses} poses`}
+                          {(session.ganho ?? 0) > 0 &&
+                            ` · +${session.ganho} pts`}
                         </p>
                       </div>
-                      <ChevronRight className="w-4 h-4 text-nfv-ice-muted" />
+                      <div className="text-right flex-shrink-0">
+                        <p className="text-xs font-bold text-nfv-cyan">
+                          {session.scoreGeral}/100
+                        </p>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-nfv-ice-muted flex-shrink-0" />
                     </div>
                   </GlassCard>
                 </motion.div>
