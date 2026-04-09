@@ -39,16 +39,42 @@ const PROCESSING_MESSAGES = [
   'Gerando protocolo personalizado...',
 ];
 
-const ATLETA_ID = '9868cae8-9077-439f-b0c3-c1ce43198c00'; // TODO: auth
-const PATIENT_ID = '9868cae8-9077-439f-b0c3-c1ce43198c00'; // TODO: linkar com paciente real
+const DEFAULT_ATLETA_ID = '9868cae8-9077-439f-b0c3-c1ce43198c00'; // TODO: auth
+const DEFAULT_PATIENT_ID = 'fc08cf1a-eb92-406b-824b-a44b0bd35113'; // TODO: linkar com paciente real
 
-// Converte File em data URI base64 (persiste no sessionStorage entre páginas).
+// Converte File em data URI base64 (usado no upload para o backend).
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result as string);
     reader.onerror = () => reject(reader.error);
     reader.readAsDataURL(file);
+  });
+}
+
+// Redimensiona imagem para max 800px de largura e comprime JPEG 75%.
+// Uma foto de 4MP (~5MB base64) fica ~80-150KB — cabe no sessionStorage.
+function resizeAndConvertToBase64(
+  objectUrl: string,
+  maxWidth = 800,
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, maxWidth / img.naturalWidth);
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.naturalWidth * scale);
+      canvas.height = Math.round(img.naturalHeight * scale);
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Canvas context indisponível'));
+        return;
+      }
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/jpeg', 0.75));
+    };
+    img.onerror = reject;
+    img.src = objectUrl;
   });
 }
 
@@ -116,7 +142,6 @@ function NovaPoseContent() {
         video_duration_s?: number;
         total_poses_found?: number;
         landmarks?: Record<string, unknown>;
-        image_data_url?: string | null;
       };
 
       if (mode === 'video' && videoFile) {
@@ -124,8 +149,8 @@ function NovaPoseContent() {
         const result = await poseAnalysisApi.uploadVideoAndAnalyze(
           videoFile,
           categoria,
-          ATLETA_ID,
-          PATIENT_ID,
+          DEFAULT_ATLETA_ID,
+          DEFAULT_PATIENT_ID,
           (step) => setVideoProgress(step),
         );
 
@@ -142,16 +167,14 @@ function NovaPoseContent() {
           poses_detected: result.poses_detected,
           video_duration_s: result.video_duration_s,
           total_poses_found: result.total_poses_found,
-          // Vídeo: sem foto única; o overlay vai usar landmarks sobre fundo escuro
-          image_data_url: null,
         };
       } else if (mode === 'photo' && photoFile) {
         // Pipeline foto: foto → MediaPipe → protocolo
         const result = await poseAnalysisApi.uploadAndAnalyze(
           photoFile,
           categoria,
-          ATLETA_ID,
-          PATIENT_ID,
+          DEFAULT_ATLETA_ID,
+          DEFAULT_PATIENT_ID,
         );
 
         if (!result.protocol) {
@@ -160,20 +183,18 @@ function NovaPoseContent() {
           );
         }
 
-        // Converter o File da foto para base64 para persistir no sessionStorage
-        const imageBase64 = await fileToBase64(photoFile);
-
         cached = {
           protocol: result.protocol,
           source: 'real_mediapipe',
           avg_confidence: result.avg_confidence,
           landmarks: result.landmarks as Record<string, unknown>,
-          image_data_url: imageBase64,
+          // image_data_url salva SEPARADO abaixo (pose_image) para não
+          // estourar a quota de 5MB do sessionStorage.
         };
       } else {
         // Modo demo: landmarks mock simétricos
         const protocol = await poseAnalysisApi.generateProtocol(
-          ATLETA_ID,
+          DEFAULT_ATLETA_ID,
           categoria,
           MOCK_SYMMETRIC_LANDMARKS,
           true,
@@ -185,6 +206,22 @@ function NovaPoseContent() {
       setProcessingStep(PROCESSING_MESSAGES.length - 1);
 
       sessionStorage.setItem('pose_protocol', JSON.stringify(cached));
+
+      // Salvar foto SEPARADA — redimensionada para ~100KB (cabe no sessionStorage).
+      // Se falhar (quota ou sem foto), ignora — overlay funciona sem ela.
+      sessionStorage.removeItem('pose_image');
+      if (mode === 'photo' && photoFile) {
+        try {
+          const preview = URL.createObjectURL(photoFile);
+          const thumb = await resizeAndConvertToBase64(preview, 800);
+          URL.revokeObjectURL(preview);
+          if (thumb.length < 2 * 1024 * 1024) {
+            sessionStorage.setItem('pose_image', thumb);
+          }
+        } catch {
+          // Ignora — overlay funciona sobre fundo escuro
+        }
+      }
 
       await new Promise((r) => setTimeout(r, 600));
       router.push(`/poses/resultado?categoria=${categoria}`);
@@ -475,3 +512,4 @@ export default function NovaPosePage() {
     </Suspense>
   );
 }
+

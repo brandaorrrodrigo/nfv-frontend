@@ -72,11 +72,14 @@ function ResultadoContent() {
         if (typeof parsed.avg_confidence === 'number') {
           setAvgConfidence(parsed.avg_confidence);
         }
-        if (parsed.image_data_url) setImageDataUrl(parsed.image_data_url);
         if (parsed.landmarks) setLandmarks(parsed.landmarks);
       } else {
         setProtocol(parsed);
       }
+
+      // Foto salva separada para evitar quota do sessionStorage
+      const savedImage = sessionStorage.getItem('pose_image');
+      if (savedImage) setImageDataUrl(savedImage);
     }
 
     // Carregar assimetrias em paralelo
