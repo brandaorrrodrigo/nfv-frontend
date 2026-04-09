@@ -71,6 +71,8 @@ export default function ChampionSideBySide({
 }: ChampionSideBySideProps) {
   const [view, setView] = useState<'overlay' | 'comparison'>('overlay');
 
+  const hasChampionData = championAngles && Object.keys(championAngles).length > 0;
+
   // Calcular ângulos do atleta
   const atletaAngles: Record<string, number> = {};
   for (const [key, [a, b, c]] of Object.entries(ANGLE_DEFINITIONS)) {
@@ -132,7 +134,18 @@ export default function ChampionSideBySide({
       )}
 
       {/* Comparison view */}
-      {view === 'comparison' && (
+      {view === 'comparison' && !hasChampionData && (
+        <GlassCard padding="lg" className="text-center py-8">
+          <p className="text-sm text-nfv-ice-muted">
+            Carregando referência do campeão...
+          </p>
+          <p className="text-xs text-nfv-ice-muted mt-1">
+            Os ângulos de referência serão comparados com os seus quando disponíveis.
+          </p>
+        </GlassCard>
+      )}
+
+      {view === 'comparison' && hasChampionData && (
         <div className="space-y-3">
           {/* Header do campeão */}
           <GlassCard padding="sm">
