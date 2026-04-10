@@ -22,6 +22,7 @@ import CoachChat from '@/components/features/poses/CoachChat';
 import ShareCard from '@/components/features/poses/ShareCard';
 import WeeklyPlan from '@/components/features/poses/WeeklyPlan';
 import PoseReport from '@/components/features/poses/PoseReport';
+import BeforeAfter from '@/components/features/poses/BeforeAfter';
 import { useAuthContext } from '@/components/providers/AuthProvider';
 import {
   poseAnalysisApi,
@@ -60,6 +61,7 @@ function ResultadoContent() {
   const [championName, setChampionName] = useState<string>('IFBB Pro League');
   const [activeTab, setActiveTab] = useState<
     | 'overlay'
+    | 'evolution'
     | 'protocol'
     | 'asymmetries'
     | 'priorities'
@@ -142,6 +144,7 @@ function ResultadoContent() {
 
   const TABS = [
     { id: 'overlay', label: 'Overlay', count: landmarks ? 1 : 0 },
+    { id: 'evolution', label: 'Evolução', count: 0 },
     { id: 'protocol', label: 'Protocolo', count: protocol.poses.length },
     {
       id: 'asymmetries',
@@ -319,6 +322,13 @@ function ResultadoContent() {
             </GlassCard>
           )}
         </div>
+      )}
+
+      {activeTab === 'evolution' && (
+        <BeforeAfter
+          currentProtocol={protocol}
+          categoria={categoria}
+        />
       )}
 
       {activeTab === 'protocol' && (
