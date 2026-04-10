@@ -5,9 +5,17 @@ const SUPPORTED = ['pt-BR', 'en', 'es'] as const;
 type Locale = typeof SUPPORTED[number];
 
 export default getRequestConfig(async () => {
-  const cookieStore = await cookies();
-  const raw = cookieStore.get('nfv-locale')?.value;
-  const locale: Locale = SUPPORTED.includes(raw as Locale) ? (raw as Locale) : 'pt-BR';
+  let locale: Locale = 'pt-BR';
+
+  try {
+    const cookieStore = await cookies();
+    const raw = cookieStore.get('nfv-locale')?.value;
+    if (raw && SUPPORTED.includes(raw as Locale)) {
+      locale = raw as Locale;
+    }
+  } catch {
+    // SSR context sem cookies (static generation) — usa pt-BR
+  }
 
   return {
     locale,
