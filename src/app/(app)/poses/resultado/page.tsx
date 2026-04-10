@@ -126,7 +126,7 @@ function ResultadoContent() {
     } else {
       setLoading(false);
     }
-  }, [categoria]);
+  }, [categoria, atletaId]);
 
   // Buscar referência do campeão quando temos landmarks reais
   useEffect(() => {
@@ -140,7 +140,7 @@ function ResultadoContent() {
         }
       })
       .catch(console.error);
-  }, [categoria, landmarks]);
+  }, [categoria, landmarks, atletaId]);
 
   // Calcular ângulos do atleta a partir dos landmarks
   const atletaAngulos = useMemo(() => {

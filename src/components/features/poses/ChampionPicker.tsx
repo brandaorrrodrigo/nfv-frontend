@@ -88,23 +88,21 @@ export default function ChampionPicker({
         const commonAngles = Object.keys(champion.angulos).filter(
           (k) => atletaAngulos[k] !== undefined,
         );
-        const similarity =
+        const avgDiff =
           commonAngles.length > 0
-            ? Math.round(
-                100 -
-                  (commonAngles.reduce(
-                    (acc, k) =>
-                      acc +
-                      Math.abs(
-                        (atletaAngulos[k] ?? 0) - (champion.angulos[k] ?? 0),
-                      ),
-                    0,
-                  ) /
-                    commonAngles.length /
-                    90) *
-                    100,
-              )
-            : 0;
+            ? commonAngles.reduce(
+                (acc, k) =>
+                  acc +
+                  Math.abs(
+                    (atletaAngulos[k] ?? 0) - (champion.angulos[k] ?? 0),
+                  ),
+                0,
+              ) / commonAngles.length
+            : 180;
+        // Normalizar: 0° diff = 100%, 45° diff = 50%, 90°+ diff = 0%
+        const similarity = Math.round(
+          Math.max(0, Math.min(100, 100 - (avgDiff / 90) * 100)),
+        );
 
         return (
           <motion.button
@@ -145,13 +143,11 @@ export default function ChampionPicker({
                 <div className="flex-1 h-1.5 bg-[#e8f0fe] rounded-full overflow-hidden">
                   <div
                     className="h-full bg-amber-400 rounded-full"
-                    style={{
-                      width: `${Math.max(0, Math.min(100, similarity))}%`,
-                    }}
+                    style={{ width: `${similarity}%` }}
                   />
                 </div>
                 <span className="text-[10px] text-nfv-ice-muted flex-shrink-0">
-                  {Math.max(0, similarity)}% similar
+                  {similarity}% similar
                 </span>
               </div>
             </div>

@@ -18,7 +18,10 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get('nfv_token')?.value;
 
   const isPublicRoute = PUBLIC_ROUTES.some(
-    (route) => pathname === route || pathname.startsWith(route + '/') || pathname.startsWith('/api')
+    (route) =>
+      pathname === route ||
+      (route !== '/' && pathname.startsWith(route + '/')) ||
+      pathname.startsWith('/api'),
   );
   const isAuthRoute = AUTH_ROUTES.some((route) => pathname.startsWith(route));
 
