@@ -226,6 +226,34 @@ class NFVApiClient {
     const res = await this.client.get<NFVPlan[]>('/plans');
     return res.data;
   }
+
+  async createCheckout(planType: 'PROFESSIONAL' | 'CLINIC'): Promise<{ url: string }> {
+    const res = await this.client.post<{ url: string }>('/plans/checkout', { planType });
+    return res.data;
+  }
+
+  async createBillingPortal(): Promise<{ url: string }> {
+    const res = await this.client.post<{ url: string }>('/plans/billing-portal', {});
+    return res.data;
+  }
+
+  async getPlanLimit(): Promise<{
+    allowed:    boolean;
+    plan:       string;
+    planStatus: string;
+    used:       number;
+    limit:      number | null;
+    remaining:  number | null;
+  }> {
+    const res = await this.client.get('/plans/limit');
+    return res.data;
+  }
+
+  // Método genérico POST para uso direto
+  async post<T>(endpoint: string, data: unknown): Promise<T> {
+    const res = await this.client.post<T>(endpoint, data);
+    return res.data;
+  }
 }
 
 // Singleton instance
