@@ -8,6 +8,7 @@ import GlassCard from '@/components/ui/GlassCard';
 import ScoreCircle from '@/components/ui/ScoreCircle';
 import { poseAnalysisApi, CATEGORY_LABELS } from '@/lib/api/pose-analysis';
 import CompetitionCountdown from '@/components/features/poses/CompetitionCountdown';
+import NotificationSetup from '@/components/features/poses/NotificationSetup';
 import type { CategoryType } from '@/lib/api/pose-analysis';
 import { useAuthContext } from '@/components/providers/AuthProvider';
 
@@ -81,6 +82,9 @@ export default function PosesPage() {
           </motion.div>
         ))}
       </div>
+
+      {/* Notificações */}
+      <NotificationSetup />
 
       {/* Ações rápidas + Competição */}
       <div className="flex items-center gap-2 flex-wrap">

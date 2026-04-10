@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 import AuthProvider from '@/components/providers/AuthProvider';
 import LocaleProvider from '@/components/providers/LocaleProvider';
+import ServiceWorkerProvider from '@/components/providers/ServiceWorkerProvider';
 import './globals.css';
 
 const exo2 = Exo_2({
@@ -50,9 +51,11 @@ export default async function RootLayout({
       <body>
         <AuthProvider>
           <LocaleProvider>
-            <NextIntlClientProvider messages={messages} locale={locale}>
-              {children}
-            </NextIntlClientProvider>
+            <ServiceWorkerProvider>
+              <NextIntlClientProvider messages={messages} locale={locale}>
+                {children}
+              </NextIntlClientProvider>
+            </ServiceWorkerProvider>
           </LocaleProvider>
         </AuthProvider>
       </body>

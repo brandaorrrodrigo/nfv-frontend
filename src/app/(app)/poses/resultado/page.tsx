@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useState, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
@@ -25,6 +25,9 @@ import PoseReport from '@/components/features/poses/PoseReport';
 import BeforeAfter from '@/components/features/poses/BeforeAfter';
 import CoachVoice from '@/components/features/poses/CoachVoice';
 import CompetitionCountdown from '@/components/features/poses/CompetitionCountdown';
+import ChampionPicker from '@/components/features/poses/ChampionPicker';
+import NFCCrossSell from '@/components/features/poses/NFCCrossSell';
+import ShareQR from '@/components/features/poses/ShareQR';
 import { useAuthContext } from '@/components/providers/AuthProvider';
 import {
   poseAnalysisApi,
@@ -73,6 +76,17 @@ function ResultadoContent() {
   >('overlay');
   const [loading, setLoading] = useState(true);
   const [chatOpen, setChatOpen] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [selectedChampion, setSelectedChampion] = useState<any>(null);
+  const analysisToken = useMemo(() => {
+    if (!protocol) return '';
+    const score = Math.round(
+      protocol.poses.reduce((a, p) => a + p.score_estimado_com_ajuste, 0) /
+        protocol.poses.length,
+    );
+    const payload = { s: score, c: categoria, t: Date.now() };
+    return btoa(JSON.stringify(payload));
+  }, [protocol, categoria]);
 
   // Resetar título da aba (pode ter sido alterado pela notificação)
   useEffect(() => {
@@ -127,6 +141,75 @@ function ResultadoContent() {
       })
       .catch(console.error);
   }, [categoria, landmarks]);
+
+  // Calcular ângulos do atleta a partir dos landmarks
+  const atletaAngulos = useMemo(() => {
+    if (!landmarks) return {} as Record<string, number>;
+    const pts = (name: string) => landmarks[name] ?? null;
+    const calcAng = (
+      a: LandmarkPoint | null,
+      b: LandmarkPoint | null,
+      c: LandmarkPoint | null,
+    ) => {
+      if (!a || !b || !c) return 0;
+      const ba = { x: a.x - b.x, y: a.y - b.y };
+      const bc = { x: c.x - b.x, y: c.y - b.y };
+      const dot = ba.x * bc.x + ba.y * bc.y;
+      const mag =
+        Math.sqrt(ba.x ** 2 + ba.y ** 2) * Math.sqrt(bc.x ** 2 + bc.y ** 2);
+      if (mag === 0) return 0;
+      return Math.round(
+        (Math.acos(Math.max(-1, Math.min(1, dot / mag))) * 180) / Math.PI,
+      );
+    };
+    return {
+      cotovelo_esq: calcAng(
+        pts('left_wrist'),
+        pts('left_elbow'),
+        pts('left_shoulder'),
+      ),
+      cotovelo_dir: calcAng(
+        pts('right_wrist'),
+        pts('right_elbow'),
+        pts('right_shoulder'),
+      ),
+      joelho_esq: calcAng(
+        pts('left_hip'),
+        pts('left_knee'),
+        pts('left_ankle'),
+      ),
+      joelho_dir: calcAng(
+        pts('right_hip'),
+        pts('right_knee'),
+        pts('right_ankle'),
+      ),
+      abducao_ombro_esq: calcAng(
+        pts('left_elbow'),
+        pts('left_shoulder'),
+        pts('left_hip'),
+      ),
+      abducao_ombro_dir: calcAng(
+        pts('right_elbow'),
+        pts('right_shoulder'),
+        pts('right_hip'),
+      ),
+      alinhamento_tronco: calcAng(
+        pts('left_shoulder'),
+        pts('left_hip'),
+        pts('left_knee'),
+      ),
+      nivelamento_ombros: calcAng(
+        pts('left_shoulder'),
+        pts('right_shoulder'),
+        pts('right_hip'),
+      ),
+      nivelamento_quadril: calcAng(
+        pts('left_hip'),
+        pts('right_hip'),
+        pts('right_knee'),
+      ),
+    };
+  }, [landmarks]);
 
   if (loading || !protocol) {
     return (
@@ -301,6 +384,18 @@ function ResultadoContent() {
       {/* Tab Content */}
       {activeTab === 'overlay' && (
         <div className="space-y-4">
+          {/* Picker de campeão */}
+          <ChampionPicker
+            categoria={categoria}
+            atletaAngulos={atletaAngulos}
+            onSelectChampion={(champ) => {
+              setSelectedChampion(champ);
+              setChampionAngles(champ.angulos);
+              setChampionName(champ.nome);
+            }}
+            selectedId={selectedChampion?.id}
+          />
+
           {landmarks ? (
             <ChampionSideBySide
               atletaImageUrl={imageDataUrl}
@@ -446,6 +541,17 @@ function ResultadoContent() {
             </motion.div>
           ))}
 
+          {/* Cross-sell nutrição */}
+          <NFCCrossSell
+            absScore={
+              protocol.poses.find(
+                (p) =>
+                  p.pose_id.includes('abdominal') || p.pose_id.includes('abs'),
+              )?.score_estimado_com_ajuste
+            }
+            categoria={categoria}
+          />
+
           {/* CTA */}
           <GlassCard padding="md" className="text-center">
             <Trophy className="w-8 h-8 text-amber-400 mx-auto mb-3" />
@@ -482,12 +588,19 @@ function ResultadoContent() {
       )}
 
       {activeTab === 'share' && (
-        <ShareCard
-          protocol={protocol}
-          categoria={categoria}
-          confidence={avgConfidence}
-          userName={user?.name}
-        />
+        <div className="space-y-4">
+          <ShareCard
+            protocol={protocol}
+            categoria={categoria}
+            confidence={avgConfidence}
+            userName={user?.name}
+          />
+          <ShareQR
+            analysisToken={analysisToken}
+            scoreGeral={scoreGeral}
+            categoria={categoria}
+          />
+        </div>
       )}
 
       {/* Botão flutuante Coach IA */}
