@@ -3,6 +3,7 @@
 import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { useTranslations } from 'next-intl';
 import {
   Check,
   X,
@@ -20,26 +21,12 @@ import { usePlans } from '@/lib/api/hooks';
 import { useAuthContext } from '@/components/providers/AuthProvider';
 import { api } from '@/lib/api/client';
 
-const FAQ = [
-  {
-    q: 'Posso cancelar a qualquer momento?',
-    a: 'Sim. Você pode cancelar sua assinatura a qualquer momento pelo portal de billing. O acesso continua até o fim do período pago.',
-  },
-  {
-    q: 'Como funciona o período grátis?',
-    a: '7 dias de acesso completo ao plano escolhido sem cobrança. Você só é cobrado após o período de trial.',
-  },
-  {
-    q: 'Quais formas de pagamento são aceitas?',
-    a: 'Cartão de crédito e débito via Stripe. Processamento 100% seguro com certificação PCI DSS.',
-  },
-];
-
 function PlanosContent() {
   const { plans, loading } = usePlans();
   const { user } = useAuthContext();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useTranslations('plans');
   const [upgrading, setUpgrading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -59,7 +46,7 @@ function PlanosContent() {
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
-        'Erro ao iniciar checkout. Tente novamente.';
+        t('faqStripe.q1'); // fallback genérico
       setError(msg);
       setUpgrading(null);
     }
@@ -74,11 +61,17 @@ function PlanosContent() {
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
-        'Erro ao abrir portal de billing.';
+        t('faqStripe.q1');
       setError(msg);
       setUpgrading(null);
     }
   };
+
+  const faqItems = [
+    { q: t('faqStripe.q1'), a: t('faqStripe.a1') },
+    { q: t('faqStripe.q2'), a: t('faqStripe.a2') },
+    { q: t('faqStripe.q3'), a: t('faqStripe.a3') },
+  ];
 
   return (
     <div className="space-y-8">
@@ -91,10 +84,8 @@ function PlanosContent() {
         >
           <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
           <div>
-            <p className="text-sm font-bold text-green-800">Assinatura ativada!</p>
-            <p className="text-xs text-green-600 mt-0.5">
-              Seu plano foi atualizado. Aproveite todos os recursos disponíveis.
-            </p>
+            <p className="text-sm font-bold text-green-800">{t('subscriptionActivated')}</p>
+            <p className="text-xs text-green-600 mt-0.5">{t('subscriptionActivatedDesc')}</p>
           </div>
         </motion.div>
       )}
@@ -107,9 +98,7 @@ function PlanosContent() {
           className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl max-w-2xl mx-auto"
         >
           <XCircle className="w-5 h-5 text-amber-600 flex-shrink-0" />
-          <p className="text-sm text-amber-800">
-            Pagamento cancelado. Nenhuma cobrança foi feita.
-          </p>
+          <p className="text-sm text-amber-800">{t('paymentCanceled')}</p>
         </motion.div>
       )}
 
@@ -122,17 +111,15 @@ function PlanosContent() {
         >
           <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0" />
           <div className="flex-1">
-            <p className="text-sm font-bold text-red-800">Pagamento em atraso</p>
-            <p className="text-xs text-red-600 mt-0.5">
-              Atualize seu método de pagamento para manter o acesso.
-            </p>
+            <p className="text-sm font-bold text-red-800">{t('paymentOverdue')}</p>
+            <p className="text-xs text-red-600 mt-0.5">{t('paymentOverdueDesc')}</p>
           </div>
           <button
             onClick={handleManageBilling}
             disabled={!!upgrading}
             className="px-3 py-1.5 rounded-lg bg-red-600 text-white text-xs font-semibold disabled:opacity-50"
           >
-            {upgrading === 'portal' ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Atualizar'}
+            {upgrading === 'portal' ? <Loader2 className="w-3 h-3 animate-spin" /> : t('updatePayment')}
           </button>
         </motion.div>
       )}
@@ -151,10 +138,10 @@ function PlanosContent() {
       {/* Header */}
       <div className="text-center">
         <h1 className="font-heading font-bold text-3xl text-nfv-ice">
-          Planos e Preços
+          {t('plansAndPricing')}
         </h1>
         <p className="text-nfv-ice-medium text-sm mt-2 max-w-lg mx-auto">
-          Escolha o plano ideal para o seu negócio. 7 dias grátis nos planos pagos.
+          {t('choosePlan')}
         </p>
         {hasActivePlan && (
           <button
@@ -167,7 +154,7 @@ function PlanosContent() {
             ) : (
               <Settings className="w-3 h-3" />
             )}
-            Gerenciar assinatura
+            {t('manageSubscription')}
           </button>
         )}
       </div>
@@ -198,7 +185,7 @@ function PlanosContent() {
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
                     <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-nfv-aurora text-white text-xs font-bold shadow-nfv-glow">
                       <Star className="w-3 h-3" />
-                      Mais popular
+                      {t('popular')}
                     </span>
                   </div>
                 )}
@@ -216,7 +203,7 @@ function PlanosContent() {
                     <div className="mt-3">
                       {plan.price === 0 ? (
                         <span className="font-heading font-bold text-3xl text-nfv-ice">
-                          Grátis
+                          {t('free')}
                         </span>
                       ) : (
                         <div className="flex items-baseline justify-center gap-1">
@@ -224,18 +211,18 @@ function PlanosContent() {
                           <span className="font-heading font-bold text-4xl text-nfv-ice">
                             {plan.price}
                           </span>
-                          <span className="text-sm text-nfv-ice-muted">/{plan.period}</span>
+                          <span className="text-sm text-nfv-ice-muted">{t('month')}</span>
                         </div>
                       )}
                     </div>
                     <p className="text-xs text-nfv-ice-muted mt-2">
                       {plan.assessmentsPerMonth === null
-                        ? 'Avaliações ilimitadas'
-                        : `${plan.assessmentsPerMonth} avaliações/mês`}
+                        ? t('unlimitedAssessments')
+                        : `${plan.assessmentsPerMonth} ${t('assessmentsPerMonth')}`}
                     </p>
                     {plan.price > 0 && (
                       <p className="text-[10px] text-green-600 font-semibold mt-1">
-                        ✓ 7 dias grátis para testar
+                        {t('trialBadge')}
                       </p>
                     )}
                   </div>
@@ -266,11 +253,11 @@ function PlanosContent() {
                   {isCurrent ? (
                     <div className="w-full py-3 rounded-xl border border-green-400/30 text-green-600 text-sm font-semibold text-center flex items-center justify-center gap-2">
                       <CheckCircle className="w-4 h-4" />
-                      Plano atual
+                      {t('currentPlanLabel')}
                     </div>
                   ) : plan.type === 'FREE' ? (
                     <div className="w-full py-3 rounded-xl border border-[#d0dbe6] text-nfv-ice-muted text-sm text-center">
-                      Plano gratuito
+                      {t('freePlanLabel')}
                     </div>
                   ) : (
                     <button
@@ -287,7 +274,7 @@ function PlanosContent() {
                       ) : (
                         <Zap className="w-4 h-4" />
                       )}
-                      {isLoading ? 'Redirecionando...' : 'Começar 7 dias grátis'}
+                      {isLoading ? t('redirecting') : t('startFreeTrial')}
                     </button>
                   )}
                 </GlassCard>
@@ -301,19 +288,17 @@ function PlanosContent() {
       <div className="text-center max-w-md mx-auto">
         <div className="flex items-center justify-center gap-2 text-xs text-nfv-ice-muted">
           <Shield className="w-3.5 h-3.5 text-nfv-cyan" />
-          <span>
-            Pagamento seguro via Stripe &bull; Cancele a qualquer momento &bull; Sem multa
-          </span>
+          <span>{t('securePayment')}</span>
         </div>
       </div>
 
       {/* FAQ */}
       <div className="max-w-2xl mx-auto pt-4">
         <h2 className="font-heading font-bold text-xl text-nfv-ice text-center mb-6">
-          Dúvidas frequentes
+          {t('faqStripe.title')}
         </h2>
         <div className="space-y-3">
-          {FAQ.map((faq, i) => (
+          {faqItems.map((faq, i) => (
             <GlassCard key={i} padding="md">
               <h3 className="font-medium text-sm text-nfv-ice mb-1">{faq.q}</h3>
               <p className="text-xs text-nfv-ice-muted leading-relaxed">{faq.a}</p>

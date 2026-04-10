@@ -27,7 +27,7 @@ export default function LoginPage() {
       await login(email, password);
       router.push('/dashboard');
     } catch (err: any) {
-      setError(err?.response?.data?.error || 'Email ou senha inválidos');
+      setError(err?.response?.data?.error || t('invalidCredentials'));
     } finally {
       setLoading(false);
     }

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { useTranslations } from 'next-intl';
 import { Trophy, AlertTriangle, Clock, Share2, ShieldAlert } from 'lucide-react';
 import ScoreCircle from '@/components/ui/ScoreCircle';
 import GlassCard from '@/components/ui/GlassCard';
@@ -14,14 +15,18 @@ import {
   type DecodeResult,
 } from '@/lib/share-token';
 
-function getScoreClassification(score: number): {
-  label: string;
-  color: string;
-} {
-  if (score >= 90) return { label: 'Elite IFBB', color: 'text-green-500' };
-  if (score >= 75) return { label: 'Competitivo', color: 'text-nfv-cyan' };
-  if (score >= 60) return { label: 'Em evolução', color: 'text-amber-500' };
-  return { label: 'Iniciante', color: 'text-red-400' };
+function getScoreColor(score: number): string {
+  if (score >= 90) return 'text-green-500';
+  if (score >= 75) return 'text-nfv-cyan';
+  if (score >= 60) return 'text-amber-500';
+  return 'text-red-400';
+}
+
+function getScoreKey(score: number): 'elite' | 'competitive' | 'evolving' | 'beginner' {
+  if (score >= 90) return 'elite';
+  if (score >= 75) return 'competitive';
+  if (score >= 60) return 'evolving';
+  return 'beginner';
 }
 
 function ErrorScreen({
@@ -30,12 +35,14 @@ function ErrorScreen({
   borderColor,
   title,
   description,
+  ctaLabel,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   iconColor: string;
   borderColor: string;
   title: string;
   description: string;
+  ctaLabel: string;
 }) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0a1628] to-[#1a2332] flex items-center justify-center p-4">
@@ -50,7 +57,7 @@ function ErrorScreen({
           href="/register"
           className="inline-block mt-6 px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#2962ff] to-[#00bcd4] text-white text-sm font-semibold"
         >
-          Criar minha conta
+          {ctaLabel}
         </a>
       </GlassCard>
     </div>
@@ -60,6 +67,7 @@ function ErrorScreen({
 export default function AnalisePublicaPage() {
   const params = useParams();
   const token = params.token as string;
+  const t = useTranslations('analise');
   const [data, setData] = useState<ShareTokenPayload | null>(null);
   const [error, setError] = useState<DecodeResult | null>(null);
 
@@ -83,8 +91,9 @@ export default function AnalisePublicaPage() {
           icon={Clock}
           iconColor="text-amber-400"
           borderColor="border-amber-500/30"
-          title="Link expirado"
-          description="Este link de análise expirou após 7 dias. Crie uma conta para acessar seus resultados sem limite de tempo."
+          title={t('expiredTitle')}
+          description={t('expiredDesc')}
+          ctaLabel={t('createAccountSimple')}
         />
       );
     }
@@ -94,8 +103,9 @@ export default function AnalisePublicaPage() {
           icon={ShieldAlert}
           iconColor="text-red-400"
           borderColor="border-red-500/30"
-          title="Link inválido"
-          description="Este link de análise foi alterado e não pode ser verificado. Solicite um novo link ao atleta."
+          title={t('tamperedTitle')}
+          description={t('tamperedDesc')}
+          ctaLabel={t('createAccountSimple')}
         />
       );
     }
@@ -104,8 +114,9 @@ export default function AnalisePublicaPage() {
         icon={AlertTriangle}
         iconColor="text-red-400"
         borderColor="border-red-500/30"
-        title="Link inválido"
-        description="Este link de análise não é válido. Verifique se o link está correto."
+        title={t('invalidTitle')}
+        description={t('invalidDesc')}
+        ctaLabel={t('createAccountSimple')}
       />
     );
   }
@@ -118,9 +129,12 @@ export default function AnalisePublicaPage() {
     );
   }
 
-  const classification = getScoreClassification(data.s);
+  const classification = {
+    label: t(`classifications.${getScoreKey(data.s)}`),
+    color: getScoreColor(data.s),
+  };
   const catLabel = CATEGORY_LABELS[data.c as CategoryType] ?? data.c;
-  const analysisDate = new Date(data.t).toLocaleDateString('pt-BR');
+  const analysisDate = new Date(data.t).toLocaleDateString();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0a1628] to-[#1a2332] p-4">
@@ -133,9 +147,7 @@ export default function AnalisePublicaPage() {
         >
           <div className="flex items-center justify-center gap-2 mb-2">
             <Trophy className="w-6 h-6 text-amber-400" />
-            <h1 className="text-xl font-bold text-white">
-              Análise IFBB Pro League
-            </h1>
+            <h1 className="text-xl font-bold text-white">{t('title')}</h1>
           </div>
           <p className="text-sm text-gray-400">
             {catLabel} &mdash; {analysisDate}
@@ -153,7 +165,7 @@ export default function AnalisePublicaPage() {
               <ScoreCircle
                 score={data.s}
                 size="lg"
-                label="Score Geral"
+                label={t('scoreGeral')}
                 showClassification
               />
               <div className="text-center">
@@ -161,7 +173,7 @@ export default function AnalisePublicaPage() {
                   {classification.label}
                 </p>
                 <p className="text-xs text-gray-400 mt-1">
-                  Categoria: {catLabel}
+                  {t('categoria')} {catLabel}
                 </p>
               </div>
             </div>
@@ -178,15 +190,8 @@ export default function AnalisePublicaPage() {
             <div className="flex items-start gap-3">
               <Share2 className="w-5 h-5 text-nfv-cyan flex-shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm font-semibold text-white">
-                  Resultado compartilhado
-                </p>
-                <p className="text-xs text-gray-400 mt-1 leading-relaxed">
-                  Esta análise foi gerada pelo sistema NutriFitVision com
-                  tecnologia MediaPipe e referências de campeões IFBB Pro
-                  League. Para acessar o protocolo completo, relatório
-                  detalhado e plano de treino, crie sua conta.
-                </p>
+                <p className="text-sm font-semibold text-white">{t('sharedResult')}</p>
+                <p className="text-xs text-gray-400 mt-1 leading-relaxed">{t('sharedDesc')}</p>
               </div>
             </div>
           </GlassCard>
@@ -203,18 +208,14 @@ export default function AnalisePublicaPage() {
             href="/register"
             className="inline-flex items-center justify-center w-full py-3 rounded-2xl bg-gradient-to-r from-[#2962ff] to-[#00bcd4] text-white font-bold text-sm shadow-lg hover:shadow-xl transition-all"
           >
-            Criar minha conta grátis
+            {t('createAccount')}
           </a>
-          <p className="text-[10px] text-gray-500">
-            Análise completa &bull; Protocolo IFBB &bull; Coach IA &bull; Evolução
-          </p>
+          <p className="text-[10px] text-gray-500">{t('bulletPoints')}</p>
         </motion.div>
 
         {/* Footer */}
         <div className="text-center pt-4 pb-8">
-          <p className="text-[10px] text-gray-600">
-            NutriFitVision &mdash; Análise de Poses IFBB Pro League
-          </p>
+          <p className="text-[10px] text-gray-600">{t('footerLine')}</p>
         </div>
       </div>
     </div>

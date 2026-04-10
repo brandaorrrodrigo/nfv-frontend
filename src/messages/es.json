@@ -49,7 +49,16 @@
     "phonePlaceholder": "+34 612 345 678",
     "loggingIn": "Iniciando sesión...",
     "creatingAccount": "Creando cuenta...",
-    "orContinueWith": "o continúa con"
+    "orContinueWith": "o continúa con",
+    "invalidCredentials": "Correo o contraseña inválidos",
+    "passwordMismatch": "Las contraseñas no coinciden",
+    "passwordTooShort": "La contraseña debe tener al menos 6 caracteres",
+    "acceptTermsError": "Debes aceptar los términos de uso",
+    "errorCreating": "Error al crear cuenta. Inténtalo de nuevo.",
+    "termsText": "He leído y acepto los",
+    "termsOfUse": "Términos de Uso",
+    "and": "y",
+    "privacyPolicy": "Política de Privacidad"
   },
   "professions": {
     "NUTRITIONIST": "Nutricionista",
@@ -75,7 +84,11 @@
     "home": "Inicio",
     "new": "Nuevo",
     "login": "Iniciar Sesión",
-    "register": "Registro"
+    "register": "Registro",
+    "poses": "Análisis de Poses IFBB",
+    "evolucao": "Progreso",
+    "resultado": "Resultado",
+    "poseCategory": "Selección de Categoría"
   },
   "dashboard": {
     "greeting": "Buenos días",
@@ -372,7 +385,33 @@
       "a2": "El contador se reinicia cada mes. Puedes mejorar tu plan para más evaluaciones.",
       "q3": "¿Cómo funciona el white label?",
       "a3": "Tus informes muestran tu marca, logo y colores en lugar de NutriFitVision."
-    }
+    },
+    "faqStripe": {
+      "title": "Preguntas frecuentes",
+      "q1": "¿Puedo cancelar en cualquier momento?",
+      "a1": "Sí. Puedes cancelar tu suscripción en cualquier momento desde el portal de facturación. El acceso continúa hasta el final del período pagado.",
+      "q2": "¿Cómo funciona el período gratuito?",
+      "a2": "7 días de acceso completo al plan elegido sin cargo. Solo se te cobra después del período de prueba.",
+      "q3": "¿Qué métodos de pago se aceptan?",
+      "a3": "Tarjetas de crédito y débito via Stripe. Procesamiento 100% seguro con certificación PCI DSS."
+    },
+    "subscriptionActivated": "¡Suscripción activada!",
+    "subscriptionActivatedDesc": "Tu plan ha sido actualizado. Disfruta todos los recursos disponibles.",
+    "paymentCanceled": "Pago cancelado. No se realizó ningún cargo.",
+    "paymentOverdue": "Pago vencido",
+    "paymentOverdueDesc": "Actualiza tu método de pago para mantener el acceso.",
+    "updatePayment": "Actualizar",
+    "plansAndPricing": "Planes y Precios",
+    "choosePlan": "Elige el plan ideal para tu negocio. 7 días gratis en planes de pago.",
+    "manageSubscription": "Gestionar suscripción",
+    "redirecting": "Redirigiendo...",
+    "startFreeTrial": "Comenzar 7 días gratis",
+    "trialBadge": "✓ 7 días gratis para probar",
+    "unlimitedAssessments": "Evaluaciones ilimitadas",
+    "assessmentsPerMonth": "evaluaciones/mes",
+    "freePlanLabel": "Plan gratuito",
+    "currentPlanLabel": "Plan actual",
+    "securePayment": "Pago seguro via Stripe · Cancela cuando quieras · Sin penalización"
   },
   "profile": {
     "title": "Mi Perfil",
@@ -561,6 +600,29 @@
       "terms": "Términos de Uso",
       "privacy": "Política de Privacidad",
       "rights": "Todos los derechos reservados."
+    }
+  },
+  "analise": {
+    "title": "Análisis IFBB Pro League",
+    "scoreGeral": "Score General",
+    "sharedResult": "Resultado compartido",
+    "sharedDesc": "Este análisis fue generado por NutriFitVision con tecnología MediaPipe y referencias de campeones IFBB Pro League. Para acceder al protocolo completo, informe detallado y plan de entrenamiento, crea tu cuenta.",
+    "createAccount": "Crear mi cuenta gratis",
+    "createAccountSimple": "Crear mi cuenta",
+    "footerLine": "NutriFitVision — Análisis de Poses IFBB Pro League",
+    "bulletPoints": "Análisis completo · Protocolo IFBB · Coach IA · Progreso",
+    "categoria": "Categoría:",
+    "expiredTitle": "Enlace expirado",
+    "expiredDesc": "Este enlace de análisis expiró después de 7 días. Crea una cuenta para acceder a tus resultados sin límite de tiempo.",
+    "tamperedTitle": "Enlace inválido",
+    "tamperedDesc": "Este enlace de análisis fue alterado y no puede verificarse. Solicita un nuevo enlace al atleta.",
+    "invalidTitle": "Enlace inválido",
+    "invalidDesc": "Este enlace de análisis no es válido. Verifica que el enlace sea correcto.",
+    "classifications": {
+      "elite": "Elite IFBB",
+      "competitive": "Competitivo",
+      "evolving": "En evolución",
+      "beginner": "Principiante"
     }
   }
 }

@@ -46,15 +46,15 @@ export default function RegisterPage() {
     setError('');
 
     if (form.password !== form.confirmPassword) {
-      setError('As senhas não coincidem');
+      setError(tAuth('passwordMismatch'));
       return;
     }
     if (form.password.length < 6) {
-      setError('A senha deve ter pelo menos 6 caracteres');
+      setError(tAuth('passwordTooShort'));
       return;
     }
     if (!acceptTerms) {
-      setError('Você precisa aceitar os termos de uso');
+      setError(tAuth('acceptTermsError'));
       return;
     }
 
@@ -69,7 +69,7 @@ export default function RegisterPage() {
       });
       router.push('/dashboard');
     } catch (err: any) {
-      setError(err?.response?.data?.message || err?.response?.data?.error || 'Erro ao criar conta. Tente novamente.');
+      setError(err?.response?.data?.message || err?.response?.data?.error || tAuth('errorCreating'));
     } finally {
       setLoading(false);
     }
@@ -158,7 +158,7 @@ export default function RegisterPage() {
             <label className="flex items-start gap-2 pt-1 cursor-pointer">
               <input type="checkbox" checked={acceptTerms} onChange={(e) => setAcceptTerms(e.target.checked)} className="mt-0.5 rounded border-[#d0dbe6] bg-white text-nfv-cyan focus:ring-nfv-cyan/30" />
               <span className="text-xs text-text-primary">
-                Li e aceito os <a href="#" className="text-nfv-cyan hover:underline">Termos de Uso</a> e <a href="#" className="text-nfv-cyan hover:underline">Política de Privacidade</a>
+                {tAuth('termsText')} <a href="#" className="text-nfv-cyan hover:underline">{tAuth('termsOfUse')}</a> {tAuth('and')} <a href="#" className="text-nfv-cyan hover:underline">{tAuth('privacyPolicy')}</a>
               </span>
             </label>
 

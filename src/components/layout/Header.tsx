@@ -59,10 +59,10 @@ export default function Header({ onMenuToggle }: HeaderProps) {
     planos: t('plans'),
     login: t('login'),
     register: t('register'),
-    poses: 'Análise de Pose',
-    nova: 'Seleção de Categoria',
-    resultado: 'Resultado',
-    evolucao: 'Evolução',
+    poses: t('poses'),
+    nova: t('poseCategory'),
+    resultado: t('resultado'),
+    evolucao: t('evolucao'),
   };
 
   const breadcrumbs = getBreadcrumbs(pathname, labelMap);

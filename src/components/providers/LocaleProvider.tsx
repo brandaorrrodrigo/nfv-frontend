@@ -78,9 +78,10 @@ export default function LocaleProvider({ children, initialLocale }: LocaleProvid
   const setLocale = useCallback((newLocale: Locale) => {
     setLocaleState(newLocale);
 
-    // Save to localStorage
+    // Save to localStorage + cookie (cookie is read by request.ts for SSR)
     if (typeof window !== 'undefined') {
       localStorage.setItem(LOCALE_KEY, newLocale);
+      document.cookie = `nfv-locale=${newLocale}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`;
     }
 
     // Persist to backend if authenticated

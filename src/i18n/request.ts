@@ -1,11 +1,16 @@
-import {getRequestConfig} from 'next-intl/server';
+import { getRequestConfig } from 'next-intl/server';
+import { cookies } from 'next/headers';
+
+const SUPPORTED = ['pt-BR', 'en', 'es'] as const;
+type Locale = typeof SUPPORTED[number];
 
 export default getRequestConfig(async () => {
-  // Sempre usar pt-BR como locale padrão
-  const locale = 'pt-BR';
+  const cookieStore = await cookies();
+  const raw = cookieStore.get('nfv-locale')?.value;
+  const locale: Locale = SUPPORTED.includes(raw as Locale) ? (raw as Locale) : 'pt-BR';
 
   return {
     locale,
-    messages: (await import(`../messages/${locale}.json`)).default
+    messages: (await import(`../messages/${locale}.json`)).default,
   };
 });
