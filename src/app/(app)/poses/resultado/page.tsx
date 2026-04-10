@@ -24,6 +24,7 @@ import WeeklyPlan from '@/components/features/poses/WeeklyPlan';
 import PoseReport from '@/components/features/poses/PoseReport';
 import BeforeAfter from '@/components/features/poses/BeforeAfter';
 import CoachVoice from '@/components/features/poses/CoachVoice';
+import CompetitionCountdown from '@/components/features/poses/CompetitionCountdown';
 import { useAuthContext } from '@/components/providers/AuthProvider';
 import {
   poseAnalysisApi,
@@ -418,6 +419,9 @@ function ResultadoContent() {
 
       {activeTab === 'priorities' && (
         <div className="space-y-4">
+          {/* Competição countdown */}
+          <CompetitionCountdown categoria={categoria} />
+
           {/* Coach com voz — TTS das prioridades */}
           <CoachVoice protocol={protocol} categoria={categoria} />
 

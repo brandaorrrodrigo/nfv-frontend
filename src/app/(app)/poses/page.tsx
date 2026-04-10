@@ -7,6 +7,7 @@ import { Plus, Trophy, ChevronRight, Activity, Calendar } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
 import ScoreCircle from '@/components/ui/ScoreCircle';
 import { poseAnalysisApi, CATEGORY_LABELS } from '@/lib/api/pose-analysis';
+import CompetitionCountdown from '@/components/features/poses/CompetitionCountdown';
 import type { CategoryType } from '@/lib/api/pose-analysis';
 import { useAuthContext } from '@/components/providers/AuthProvider';
 
@@ -80,6 +81,9 @@ export default function PosesPage() {
           </motion.div>
         ))}
       </div>
+
+      {/* Competição countdown (compact) */}
+      <CompetitionCountdown compact />
 
       {/* Histórico — só aparece quando há sessões; CTA azul vai junto */}
       {!loadingHistory && history.length > 0 && (
