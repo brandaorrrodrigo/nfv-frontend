@@ -14,8 +14,13 @@ export default function NotificationSetup() {
   const [daysSince, setDaysSince] = useState<number | null>(null);
 
   useEffect(() => {
-    setPermission(notificationsManager.getPermission());
+    const perm = notificationsManager.getPermission();
+    setPermission(perm);
     setDaysSince(notificationsManager.getDaysSinceLastAnalysis());
+    // Se já tem permissão, verificar se precisa enviar lembrete
+    if (perm === 'granted') {
+      notificationsManager.checkAndRemind().catch(console.error);
+    }
   }, []);
 
   const handleEnable = async () => {

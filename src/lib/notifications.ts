@@ -1,5 +1,10 @@
 const STORAGE_KEY = 'nfv_last_analysis';
 
+// Estender NotificationOptions para incluir vibrate (suportado pelo SW)
+interface ExtendedNotificationOptions extends NotificationOptions {
+  vibrate?: number[];
+}
+
 export const notificationsManager = {
   isSupported(): boolean {
     return typeof window !== 'undefined' && 'Notification' in window;
@@ -27,19 +32,26 @@ export const notificationsManager = {
 
   async scheduleLocal(title: string, body: string, tag?: string): Promise<void> {
     if (this.getPermission() !== 'granted') return;
-    const reg = await navigator.serviceWorker?.ready;
-    if (reg?.showNotification) {
-      await reg.showNotification(title, {
-        body,
-        icon: '/icons/icon-192x192.png',
-        badge: '/icons/icon-72x72.png',
-        tag: tag ?? 'nfv-pose',
-        // @ts-expect-error vibrate is valid for ServiceWorkerRegistration.showNotification
-        vibrate: [200, 100, 200],
-      });
-    } else {
-      new Notification(title, { body, tag: tag ?? 'nfv-pose' });
+
+    const options: ExtendedNotificationOptions = {
+      body,
+      icon: '/icons/icon-192x192.png',
+      badge: '/icons/icon-72x72.png',
+      tag: tag ?? 'nfv-pose',
+      vibrate: [200, 100, 200],
+    };
+
+    if ('serviceWorker' in navigator) {
+      try {
+        const reg = await navigator.serviceWorker.ready;
+        await reg.showNotification(title, options);
+        return;
+      } catch {
+        // fallback to basic Notification
+      }
     }
+
+    new Notification(title, { body, tag: tag ?? 'nfv-pose' });
   },
 
   saveLastAnalysisDate(): void {
@@ -60,7 +72,7 @@ export const notificationsManager = {
     if (days === null || days < 7) return;
     await this.scheduleLocal(
       'Hora de treinar suas poses!',
-      `Faz ${days} dias desde sua ultima analise. Que tal praticar hoje?`,
+      `Faz ${days} dias desde sua última análise. Que tal praticar hoje?`,
       'nfv-reminder',
     );
   },

@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Trophy, Star } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
 
-interface Champion {
+export interface Champion {
   id: string;
   nome: string;
   categoria: string;

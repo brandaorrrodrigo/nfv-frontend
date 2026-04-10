@@ -5,24 +5,14 @@ import { motion } from 'framer-motion';
 import { QrCode, Copy, Check, ExternalLink } from 'lucide-react';
 import QRCode from 'qrcode';
 import GlassCard from '@/components/ui/GlassCard';
+import { encodeShareToken } from '@/lib/share-token';
 
 interface ShareQRProps {
-  analysisToken: string;
   scoreGeral: number;
   categoria: string;
 }
 
-function generateToken(data: { score: number; categoria: string }): string {
-  const payload = {
-    s: data.score,
-    c: data.categoria,
-    t: Date.now(),
-  };
-  return btoa(JSON.stringify(payload));
-}
-
 export default function ShareQR({
-  analysisToken,
   scoreGeral,
   categoria,
 }: ShareQRProps) {
@@ -31,9 +21,7 @@ export default function ShareQR({
   const [shareUrl, setShareUrl] = useState('');
 
   useEffect(() => {
-    const token =
-      analysisToken ||
-      generateToken({ score: scoreGeral, categoria });
+    const token = encodeShareToken(scoreGeral, categoria);
     const origin =
       typeof window !== 'undefined' ? window.location.origin : '';
     const url = `${origin}/analise/${encodeURIComponent(token)}`;
@@ -46,7 +34,7 @@ export default function ShareQR({
         color: { dark: '#1a2332', light: '#ffffff' },
       }).catch(console.error);
     }
-  }, [analysisToken, scoreGeral, categoria]);
+  }, [scoreGeral, categoria]);
 
   const handleCopy = async () => {
     try {

@@ -3,41 +3,16 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Trophy, AlertTriangle, Clock, Share2 } from 'lucide-react';
+import { Trophy, AlertTriangle, Clock, Share2, ShieldAlert } from 'lucide-react';
 import ScoreCircle from '@/components/ui/ScoreCircle';
 import GlassCard from '@/components/ui/GlassCard';
 import { CATEGORY_LABELS } from '@/lib/api/pose-analysis';
 import type { CategoryType } from '@/lib/api/pose-analysis';
-
-interface TokenPayload {
-  s: number; // score
-  c: string; // categoria
-  t: number; // timestamp
-}
-
-const EXPIRY_DAYS = 7;
-
-function decodeToken(token: string): TokenPayload | null {
-  try {
-    const json = atob(decodeURIComponent(token));
-    const parsed = JSON.parse(json);
-    if (
-      typeof parsed.s === 'number' &&
-      typeof parsed.c === 'string' &&
-      typeof parsed.t === 'number'
-    ) {
-      return parsed;
-    }
-    return null;
-  } catch {
-    return null;
-  }
-}
-
-function isExpired(timestamp: number): boolean {
-  const diff = Date.now() - timestamp;
-  return diff > EXPIRY_DAYS * 24 * 60 * 60 * 1000;
-}
+import {
+  decodeShareToken,
+  type ShareTokenPayload,
+  type DecodeResult,
+} from '@/lib/share-token';
 
 function getScoreClassification(score: number): {
   label: string;
@@ -45,72 +20,93 @@ function getScoreClassification(score: number): {
 } {
   if (score >= 90) return { label: 'Elite IFBB', color: 'text-green-500' };
   if (score >= 75) return { label: 'Competitivo', color: 'text-nfv-cyan' };
-  if (score >= 60) return { label: 'Em evolucao', color: 'text-amber-500' };
+  if (score >= 60) return { label: 'Em evolução', color: 'text-amber-500' };
   return { label: 'Iniciante', color: 'text-red-400' };
+}
+
+function ErrorScreen({
+  icon: Icon,
+  iconColor,
+  borderColor,
+  title,
+  description,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  iconColor: string;
+  borderColor: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-[#0a1628] to-[#1a2332] flex items-center justify-center p-4">
+      <GlassCard
+        padding="lg"
+        className={`max-w-md text-center bg-[#1e293b] ${borderColor}`}
+      >
+        <Icon className={`w-12 h-12 ${iconColor} mx-auto mb-4`} />
+        <h1 className="text-lg font-bold text-white mb-2">{title}</h1>
+        <p className="text-sm text-gray-400">{description}</p>
+        <a
+          href="/register"
+          className="inline-block mt-6 px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#2962ff] to-[#00bcd4] text-white text-sm font-semibold"
+        >
+          Criar minha conta
+        </a>
+      </GlassCard>
+    </div>
+  );
 }
 
 export default function AnalisePublicaPage() {
   const params = useParams();
   const token = params.token as string;
-  const [data, setData] = useState<TokenPayload | null>(null);
-  const [expired, setExpired] = useState(false);
-  const [invalid, setInvalid] = useState(false);
+  const [data, setData] = useState<ShareTokenPayload | null>(null);
+  const [error, setError] = useState<DecodeResult | null>(null);
 
   useEffect(() => {
     if (!token) {
-      setInvalid(true);
+      setError({ ok: false, reason: 'invalid' });
       return;
     }
-    const decoded = decodeToken(token);
-    if (!decoded) {
-      setInvalid(true);
+    const result = decodeShareToken(token);
+    if (!result.ok) {
+      setError(result);
       return;
     }
-    if (isExpired(decoded.t)) {
-      setExpired(true);
-      return;
-    }
-    setData(decoded);
+    setData(result.data);
   }, [token]);
 
-  if (invalid) {
+  if (error && !error.ok) {
+    if (error.reason === 'expired') {
+      return (
+        <ErrorScreen
+          icon={Clock}
+          iconColor="text-amber-400"
+          borderColor="border-amber-500/30"
+          title="Link expirado"
+          description="Este link de análise expirou após 7 dias. Crie uma conta para acessar seus resultados sem limite de tempo."
+        />
+      );
+    }
+    if (error.reason === 'tampered') {
+      return (
+        <ErrorScreen
+          icon={ShieldAlert}
+          iconColor="text-red-400"
+          borderColor="border-red-500/30"
+          title="Link inválido"
+          description="Este link de análise foi alterado e não pode ser verificado. Solicite um novo link ao atleta."
+        />
+      );
+    }
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#0a1628] to-[#1a2332] flex items-center justify-center p-4">
-        <GlassCard padding="lg" className="max-w-md text-center bg-[#1e293b] border-red-500/30">
-          <AlertTriangle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-          <h1 className="text-lg font-bold text-white mb-2">Link invalido</h1>
-          <p className="text-sm text-gray-400">
-            Este link de analise nao e valido. Verifique se o link esta correto.
-          </p>
-          <a
-            href="/register"
-            className="inline-block mt-6 px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#2962ff] to-[#00bcd4] text-white text-sm font-semibold"
-          >
-            Criar minha conta
-          </a>
-        </GlassCard>
-      </div>
-    );
-  }
-
-  if (expired) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-[#0a1628] to-[#1a2332] flex items-center justify-center p-4">
-        <GlassCard padding="lg" className="max-w-md text-center bg-[#1e293b] border-amber-500/30">
-          <Clock className="w-12 h-12 text-amber-400 mx-auto mb-4" />
-          <h1 className="text-lg font-bold text-white mb-2">Link expirado</h1>
-          <p className="text-sm text-gray-400">
-            Este link de analise expirou apos {EXPIRY_DAYS} dias. Crie uma
-            conta para acessar seus resultados sem limite de tempo.
-          </p>
-          <a
-            href="/register"
-            className="inline-block mt-6 px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#2962ff] to-[#00bcd4] text-white text-sm font-semibold"
-          >
-            Criar minha conta
-          </a>
-        </GlassCard>
-      </div>
+      <ErrorScreen
+        icon={AlertTriangle}
+        iconColor="text-red-400"
+        borderColor="border-red-500/30"
+        title="Link inválido"
+        description="Este link de análise não é válido. Verifique se o link está correto."
+      />
     );
   }
 
@@ -123,8 +119,7 @@ export default function AnalisePublicaPage() {
   }
 
   const classification = getScoreClassification(data.s);
-  const catLabel =
-    CATEGORY_LABELS[data.c as CategoryType] ?? data.c;
+  const catLabel = CATEGORY_LABELS[data.c as CategoryType] ?? data.c;
   const analysisDate = new Date(data.t).toLocaleDateString('pt-BR');
 
   return (
@@ -139,11 +134,11 @@ export default function AnalisePublicaPage() {
           <div className="flex items-center justify-center gap-2 mb-2">
             <Trophy className="w-6 h-6 text-amber-400" />
             <h1 className="text-xl font-bold text-white">
-              Analise IFBB Pro League
+              Análise IFBB Pro League
             </h1>
           </div>
           <p className="text-sm text-gray-400">
-            {catLabel} - {analysisDate}
+            {catLabel} &mdash; {analysisDate}
           </p>
         </motion.div>
 
@@ -187,9 +182,9 @@ export default function AnalisePublicaPage() {
                   Resultado compartilhado
                 </p>
                 <p className="text-xs text-gray-400 mt-1 leading-relaxed">
-                  Esta analise foi gerada pelo sistema NutriFitVision com
-                  tecnologia MediaPipe e referencias de campeoes IFBB Pro
-                  League. Para acessar o protocolo completo, relatorio
+                  Esta análise foi gerada pelo sistema NutriFitVision com
+                  tecnologia MediaPipe e referências de campeões IFBB Pro
+                  League. Para acessar o protocolo completo, relatório
                   detalhado e plano de treino, crie sua conta.
                 </p>
               </div>
@@ -208,17 +203,17 @@ export default function AnalisePublicaPage() {
             href="/register"
             className="inline-flex items-center justify-center w-full py-3 rounded-2xl bg-gradient-to-r from-[#2962ff] to-[#00bcd4] text-white font-bold text-sm shadow-lg hover:shadow-xl transition-all"
           >
-            Criar minha conta gratis
+            Criar minha conta grátis
           </a>
           <p className="text-[10px] text-gray-500">
-            Analise completa - Protocolo IFBB - Coach IA - Evolucao
+            Análise completa &bull; Protocolo IFBB &bull; Coach IA &bull; Evolução
           </p>
         </motion.div>
 
         {/* Footer */}
         <div className="text-center pt-4 pb-8">
           <p className="text-[10px] text-gray-600">
-            NutriFitVision - Analise de Poses IFBB Pro League
+            NutriFitVision &mdash; Análise de Poses IFBB Pro League
           </p>
         </div>
       </div>

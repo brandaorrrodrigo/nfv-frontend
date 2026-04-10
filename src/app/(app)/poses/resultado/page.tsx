@@ -26,6 +26,7 @@ import BeforeAfter from '@/components/features/poses/BeforeAfter';
 import CoachVoice from '@/components/features/poses/CoachVoice';
 import CompetitionCountdown from '@/components/features/poses/CompetitionCountdown';
 import ChampionPicker from '@/components/features/poses/ChampionPicker';
+import type { Champion } from '@/components/features/poses/ChampionPicker';
 import NFCCrossSell from '@/components/features/poses/NFCCrossSell';
 import ShareQR from '@/components/features/poses/ShareQR';
 import { useAuthContext } from '@/components/providers/AuthProvider';
@@ -76,17 +77,7 @@ function ResultadoContent() {
   >('overlay');
   const [loading, setLoading] = useState(true);
   const [chatOpen, setChatOpen] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [selectedChampion, setSelectedChampion] = useState<any>(null);
-  const analysisToken = useMemo(() => {
-    if (!protocol) return '';
-    const score = Math.round(
-      protocol.poses.reduce((a, p) => a + p.score_estimado_com_ajuste, 0) /
-        protocol.poses.length,
-    );
-    const payload = { s: score, c: categoria, t: Date.now() };
-    return btoa(JSON.stringify(payload));
-  }, [protocol, categoria]);
+  const [selectedChampion, setSelectedChampion] = useState<Champion | null>(null);
 
   // Resetar título da aba (pode ter sido alterado pela notificação)
   useEffect(() => {
@@ -595,11 +586,7 @@ function ResultadoContent() {
             confidence={avgConfidence}
             userName={user?.name}
           />
-          <ShareQR
-            analysisToken={analysisToken}
-            scoreGeral={scoreGeral}
-            categoria={categoria}
-          />
+          <ShareQR scoreGeral={scoreGeral} categoria={categoria} />
         </div>
       )}
 
