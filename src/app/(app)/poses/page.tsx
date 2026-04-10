@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Plus, Trophy, ChevronRight, Activity, Calendar, Camera } from 'lucide-react';
+import { Plus, Trophy, ChevronRight, Activity, Calendar, Camera, Timer } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
 import ScoreCircle from '@/components/ui/ScoreCircle';
 import { poseAnalysisApi, CATEGORY_LABELS } from '@/lib/api/pose-analysis';
@@ -82,14 +82,23 @@ export default function PosesPage() {
         ))}
       </div>
 
-      {/* Treino ao vivo + Competição */}
-      <div className="flex items-center gap-3">
+      {/* Ações rápidas + Competição */}
+      <div className="flex items-center gap-2 flex-wrap">
         <button
           onClick={() => router.push('/poses/live?categoria=mens_physique')}
-          className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-[#d0dbe6] text-nfv-ice text-sm font-semibold hover:border-nfv-cyan/30 transition-all"
+          className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-[#d0dbe6] text-nfv-ice text-xs font-semibold hover:border-nfv-cyan/30 transition-all"
         >
-          <Camera className="w-4 h-4" />
+          <Camera className="w-3.5 h-3.5" />
           Ao vivo
+        </button>
+        <button
+          onClick={() =>
+            router.push('/poses/treino?categoria=mens_physique')
+          }
+          className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-[#d0dbe6] text-nfv-ice text-xs font-semibold hover:border-nfv-cyan/30 transition-all"
+        >
+          <Timer className="w-3.5 h-3.5" />
+          Treinar
         </button>
         <CompetitionCountdown compact />
       </div>
