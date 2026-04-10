@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Plus, Trophy, ChevronRight, Activity, Calendar } from 'lucide-react';
+import { Plus, Trophy, ChevronRight, Activity, Calendar, Camera } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
 import ScoreCircle from '@/components/ui/ScoreCircle';
 import { poseAnalysisApi, CATEGORY_LABELS } from '@/lib/api/pose-analysis';
@@ -82,8 +82,17 @@ export default function PosesPage() {
         ))}
       </div>
 
-      {/* Competição countdown (compact) */}
-      <CompetitionCountdown compact />
+      {/* Treino ao vivo + Competição */}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={() => router.push('/poses/live?categoria=mens_physique')}
+          className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-[#d0dbe6] text-nfv-ice text-sm font-semibold hover:border-nfv-cyan/30 transition-all"
+        >
+          <Camera className="w-4 h-4" />
+          Ao vivo
+        </button>
+        <CompetitionCountdown compact />
+      </div>
 
       {/* Histórico — só aparece quando há sessões; CTA azul vai junto */}
       {!loadingHistory && history.length > 0 && (
