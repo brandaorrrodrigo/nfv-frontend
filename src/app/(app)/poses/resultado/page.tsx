@@ -23,6 +23,7 @@ import ShareCard from '@/components/features/poses/ShareCard';
 import WeeklyPlan from '@/components/features/poses/WeeklyPlan';
 import PoseReport from '@/components/features/poses/PoseReport';
 import BeforeAfter from '@/components/features/poses/BeforeAfter';
+import CoachVoice from '@/components/features/poses/CoachVoice';
 import { useAuthContext } from '@/components/providers/AuthProvider';
 import {
   poseAnalysisApi,
@@ -416,7 +417,12 @@ function ResultadoContent() {
       )}
 
       {activeTab === 'priorities' && (
-        <div className="space-y-3">
+        <div className="space-y-4">
+          {/* Coach com voz — TTS das prioridades */}
+          <CoachVoice protocol={protocol} categoria={categoria} />
+
+          {/* Lista de prioridades */}
+          <div className="space-y-3">
           {protocol.prioridades_treino_posing.map((prioridade, i) => (
             <motion.div
               key={i}
@@ -453,6 +459,7 @@ function ResultadoContent() {
               Nova análise <ChevronRight className="w-4 h-4" />
             </button>
           </GlassCard>
+        </div>
         </div>
       )}
 
