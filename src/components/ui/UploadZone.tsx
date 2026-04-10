@@ -66,6 +66,7 @@ export default function UploadZone({
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {previews.map((preview, i) => (
             <div key={i} className="relative group aspect-[3/4] rounded-xl overflow-hidden border border-[#d0dbe6]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={preview.url} alt={`Preview ${i + 1}`} className="w-full h-full object-cover" />
               <button
                 onClick={() => removeFile(i)}

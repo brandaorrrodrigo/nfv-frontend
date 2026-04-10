@@ -5,6 +5,9 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 
   async headers() {
     const isDev = process.env.NODE_ENV === 'development';

@@ -289,10 +289,11 @@ function LiveContent() {
 
   // Cleanup
   useEffect(() => {
+    const video = videoRef.current;
     return () => {
       cancelAnimationFrame(animRef.current);
-      if (videoRef.current?.srcObject) {
-        (videoRef.current.srcObject as MediaStream)
+      if (video?.srcObject) {
+        (video.srcObject as MediaStream)
           .getTracks()
           .forEach((t) => t.stop());
       }

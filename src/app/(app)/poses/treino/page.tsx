@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -38,7 +38,10 @@ function TreinoContent() {
   const searchParams = useSearchParams();
   const categoria = (searchParams.get('categoria') ??
     'mens_physique') as CategoryType;
-  const poses = CATEGORY_POSE_LIST[categoria] ?? [];
+  const poses = useMemo(
+    () => CATEGORY_POSE_LIST[categoria] ?? [],
+    [categoria],
+  );
 
   const [state, setState] = useState<TrainingState>('idle');
   const [poseIdx, setPoseIdx] = useState(0);

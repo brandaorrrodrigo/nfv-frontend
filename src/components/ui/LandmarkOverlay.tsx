@@ -39,6 +39,7 @@ export default function LandmarkOverlay({
     <div className="relative inline-block rounded-xl overflow-hidden border border-[#d0dbe6]" style={{ width, height }}>
       {/* Background image or placeholder */}
       {imageUrl ? (
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={imageUrl} alt="Posture assessment" className="w-full h-full object-cover" />
       ) : (
         <div className="w-full h-full bg-nfv-bg-card flex items-center justify-center">

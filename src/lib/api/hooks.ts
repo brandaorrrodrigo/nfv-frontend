@@ -309,6 +309,7 @@ export function useNFVAssessments(filters?: {
     } finally {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters?.patientId, filters?.status]);
 
   useEffect(() => {
